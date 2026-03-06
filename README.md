@@ -41,4 +41,5 @@ The Entity-Relationship Diagram (ERD) is shown below.
 ## References
 
 [1] northcoder-repo. "Sample IMDb data for relational databases. For testing/demo purposes only." GitHub repository. https://github.com/northcoder-repo/relational-sample-IMDB-data
+
 [2] northcoder. "Using IMDb as a Test Data Set". 11 Nov 2019. Blog post. https://northcoder.com/blog/using-imdb-as-a-test-data-set
