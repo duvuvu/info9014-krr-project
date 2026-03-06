@@ -21,9 +21,9 @@ use imdb;
 
 drop table if exists title_episode;
 drop table if exists title_aka_title_type;
-drop table if exists title_principal_raw;
-drop table if exists title_principal;
 drop table if exists principal_role;
+drop table if exists title_principal;
+drop table if exists title_principal_raw;
 drop table if exists title_genre;
 drop table if exists title_aka;
 drop table if exists talent_title;
