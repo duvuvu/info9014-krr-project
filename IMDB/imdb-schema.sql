@@ -21,7 +21,9 @@ use imdb;
 
 drop table if exists title_episode;
 drop table if exists title_aka_title_type;
+drop table if exists title_principal_raw;
 drop table if exists title_principal;
+drop table if exists principal_role;
 drop table if exists title_genre;
 drop table if exists title_aka;
 drop table if exists talent_title;
@@ -229,6 +231,10 @@ alter table talent_title
 add foreign key (talent_id) 
 references talent(talent_id);
 
+alter table talent_title
+add foreign key (title_id)
+references title(title_id);
+
 create index tal_ttl_title_id_idx on talent_title(title_id);
 
 -- ------------------------------------------------
@@ -260,6 +266,10 @@ alter table title_aka
 add foreign key (language_id) 
 references language(language_id);
 
+alter table title_aka
+add foreign key (title_id) 
+references title(title_id);
+
 -- ------------------------------------------------
 
 create table if not exists title_genre (
@@ -286,6 +296,24 @@ add foreign key (genre_id)
 references genre(genre_id);
 
 -- ------------------------------------------------
+create table if not exists title_principal_raw (
+  title_id varchar(20),
+  talent_id varchar(20),
+  ord int not null,
+  category_id int not null,
+  job varchar(1000),
+  role_names varchar(2000),
+  primary key (title_id, talent_id, ord)
+);
+
+load data infile
+'/var/lib/mysql-files/title_principal.csv'
+into table title_principal_raw
+character set 'utf8mb4'
+fields terminated by ','
+optionally enclosed by '"'
+lines terminated by '\r\n'
+ignore 1 lines;
 
 create table if not exists title_principal (
   title_id varchar(20),
@@ -293,19 +321,66 @@ create table if not exists title_principal (
   ord int not null,
   category_id int not null,
   job varchar(1000),
-  role_names varchar(1000),
-  primary key (title_id, talent_id, ord));
+  primary key (title_id, talent_id, ord)
+);
 
-load data infile
-'/var/lib/mysql-files/title_principal.csv' 
-into table title_principal
-character set 'utf8mb4'
-fields terminated by ',' 
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
+insert into title_principal (title_id, talent_id, ord, category_id, job)
+select title_id, talent_id, ord, category_id, job
+from title_principal_raw;
 
 create index ttl_prin_tal_id_idx on title_principal(talent_id);
+create index ttl_prin_cat_id_idx on title_principal(category_id);
+
+-- remove any rows where the title or talent is missing
+delete tp
+from title_principal tp
+left join talent t
+  on tp.talent_id = t.talent_id
+where t.talent_id is null;
+
+alter table title_principal
+add foreign key (title_id)
+references title(title_id);
+
+alter table title_principal
+add foreign key (talent_id)
+references talent(talent_id);
+
+alter table title_principal
+add foreign key (category_id)
+references category(category_id);
+
+create table if not exists principal_role (
+  title_id varchar(20),
+  talent_id varchar(20),
+  ord int not null,
+  role_name varchar(255) not null,
+  primary key (title_id, talent_id, ord, role_name)
+);
+
+insert into principal_role (title_id, talent_id, ord, role_name)
+select distinct
+    r.title_id,
+    r.talent_id,
+    r.ord,
+    trim(substring_index(substring_index(r.role_names, ',', numbers.n), ',', -1)) as role_name
+from title_principal_raw r
+join title_principal tp
+  on r.title_id = tp.title_id
+ and r.talent_id = tp.talent_id
+ and r.ord = tp.ord
+join (
+    select 1 as n union select 2 union select 3 union select 4 union select 5
+    union select 6 union select 7 union select 8 union select 9 union select 10
+) numbers
+  on char_length(r.role_names) - char_length(replace(r.role_names, ',', '')) >= numbers.n - 1
+where r.role_names is not null
+and trim(r.role_names) <> ''
+and trim(substring_index(substring_index(r.role_names, ',', numbers.n), ',', -1)) <> '';
+
+alter table principal_role
+add foreign key (title_id, talent_id, ord)
+references title_principal(title_id, talent_id, ord);
 
 -- ------------------------------------------------
 
@@ -328,6 +403,11 @@ alter table title_aka_title_type
 add foreign key (title_type_id) 
 references title_type(title_type_id);
 
+
+alter table title_aka_title_type
+add foreign key (title_id, ord)
+references title_aka(title_id, ord);
+
 -- ------------------------------------------------
 
 create table if not exists title_episode (
@@ -345,6 +425,14 @@ fields terminated by ','
 optionally enclosed by '"'
 lines terminated by '\r\n'
 ignore 1 lines;
+
+alter table title_episode
+add foreign key (title_id)
+references title(title_id);
+
+alter table title_episode
+add foreign key (parent_title_id)
+references title(title_id); 
 
 create index ttl_epi_par_idx on title_episode(parent_title_id);
 
@@ -473,14 +561,14 @@ update imdb.region set region_name = 'Madagascar' where region_id = 'MG';
 update imdb.region set region_name = 'Peru' where region_id = 'PE';
 update imdb.region set region_name = 'Moldova' where region_id = 'MD';
 update imdb.region set region_name = 'Slovenia' where region_id = 'SI';
-update imdb.region set region_name = 'unknonw' where region_id = 'XSA';
+update imdb.region set region_name = 'unknown' where region_id = 'XSA';
 update imdb.region set region_name = 'Côte d''Ivoire' where region_id = 'CI';
 update imdb.region set region_name = 'Rwanda' where region_id = 'RW';
 update imdb.region set region_name = 'Canada' where region_id = 'CA';
 update imdb.region set region_name = 'Congo' where region_id = 'CG';
 update imdb.region set region_name = 'Bolivia' where region_id = 'BO';
 update imdb.region set region_name = 'Kuwait' where region_id = 'KW';
-update imdb.region set region_name = 'unknonw' where region_id = 'XWW';
+update imdb.region set region_name = 'unknown' where region_id = 'XWW';
 update imdb.region set region_name = 'Syrian Arab Republic' where region_id = 'SY';
 update imdb.region set region_name = 'Northern Mariana Islands' where region_id = 'MP';
 update imdb.region set region_name = 'Equatorial Guinea' where region_id = 'GQ';
@@ -710,7 +798,11 @@ use imdb;
 
 select 'title_aka_title_type' as tbl, count(*) from title_aka_title_type
 union
+select 'title_principal_raw' as tbl, count(*) from title_principal_raw
+union
 select 'title_principal' as tbl, count(*) from title_principal
+union
+select 'principal_role' as tbl, count(*) from principal_role
 union
 select 'title_genre' as tbl, count(*) from title_genre
 union
@@ -739,4 +831,5 @@ union
 select 'category' as tbl, count(*) from category
 union
 select 'title_episode' as tbl, count(*) from title_episode
+
 order by 1;
