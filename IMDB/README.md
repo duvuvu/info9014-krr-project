@@ -9,7 +9,7 @@ The IMDb database models the entertainment industry with comprehensive informati
 - `docker-compose.yml` - Docker Compose configuration
 - `imdb-schema.sql` - Database schema adapted from [1]
 - `csv-data/` - Directory containing CSV data files for all tables [1]
-- `model.png' - Entity-Relationship Diagram of the IMDB database [2]
+- `model.png` - Entity-Relationship Diagram of the IMDB database [2]
 
 This database uses sampled data from the IMDB non-commercial datasets.
 Data files are located in the `csv-data/` directory.

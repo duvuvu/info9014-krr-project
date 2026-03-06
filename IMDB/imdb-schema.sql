@@ -1,4 +1,4 @@
-use imdb;
+USE `imdb`;
 
 --
 -- WARNINGS - you may need the following permission
@@ -19,422 +19,549 @@ use imdb;
 
 -- -----------------------------------------------
 
-drop table if exists title_episode;
-drop table if exists title_aka_title_type;
-drop table if exists principal_role;
-drop table if exists title_principal;
-drop table if exists title_principal_raw;
-drop table if exists title_genre;
-drop table if exists title_aka;
-drop table if exists talent_title;
-drop table if exists talent_role;
-drop table if exists talent;
-drop table if exists title;
-drop table if exists title_type;
-drop table if exists role;
-drop table if exists region;
-drop table if exists language;
-drop table if exists genre;
-drop table if exists content_type;
-drop table if exists category;
+DROP TABLE IF EXISTS `title_episode`;
+DROP TABLE IF EXISTS `title_aka_title_type`;
+DROP TABLE IF EXISTS `principal_role`;
+DROP TABLE IF EXISTS `title_principal`;
+DROP TABLE IF EXISTS `title_principal_raw`;
+DROP TABLE IF EXISTS `title_genre`;
+DROP TABLE IF EXISTS `title_aka`;
+DROP TABLE IF EXISTS `talent_title`;
+DROP TABLE IF EXISTS `talent_role`;
+DROP TABLE IF EXISTS `talent`;
+DROP TABLE IF EXISTS `title`;
+DROP TABLE IF EXISTS `title_type`;
+DROP TABLE IF EXISTS `role`;
+DROP TABLE IF EXISTS `region`;
+DROP TABLE IF EXISTS `language`;
+DROP TABLE IF EXISTS `genre`;
+DROP TABLE IF EXISTS `content_type`;
+DROP TABLE IF EXISTS `category`;
 
 -- -----------------------------------------------
 
-create table if not exists category (
-  category_id int primary key,
-  category_name varchar(100) not null);
+CREATE TABLE IF NOT EXISTS `category` (
+  `CATEGORY_ID` INT NOT NULL,
+  `CATEGORY_NAME` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`CATEGORY_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-load data infile
-'/var/lib/mysql-files/category.csv' 
-into table category
-character set 'utf8mb4'
-fields terminated by ',' 
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
-
-
--- ------------------------------------------------
-
-create table if not exists content_type (
-  content_type_id int primary key,
-  content_type_name varchar(100) not null);
-
-load data infile
-'/var/lib/mysql-files/content_type.csv' 
-into table content_type
-character set 'utf8mb4'
-fields terminated by ',' 
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
+LOAD DATA INFILE '/var/lib/mysql-files/category.csv'
+INTO TABLE `category`
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(
+  @CATEGORY_ID, @CATEGORY_NAME
+)
+SET
+  `CATEGORY_ID` = NULLIF(@CATEGORY_ID, ''),
+  `CATEGORY_NAME` = NULLIF(@CATEGORY_NAME, '');
 
 -- ------------------------------------------------
 
-create table if not exists genre (
-  genre_id int primary key,
-  genre_name varchar(100) not null);
+CREATE TABLE IF NOT EXISTS `content_type` (
+  `CONTENT_TYPE_ID` INT NOT NULL,
+  `CONTENT_TYPE_NAME` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`CONTENT_TYPE_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-load data infile
-'/var/lib/mysql-files/genre.csv' 
-into table genre
-character set 'utf8mb4'
-fields terminated by ',' 
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
-
--- ------------------------------------------------
-
-create table if not exists language (
-  language_id varchar(10) primary key,
-  language_name varchar(100));
-
-load data infile
-'/var/lib/mysql-files/language.csv' 
-into table language
-character set 'utf8mb4'
-fields terminated by ',' 
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
+LOAD DATA INFILE '/var/lib/mysql-files/content_type.csv'
+INTO TABLE `content_type`
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(
+  @CONTENT_TYPE_ID, @CONTENT_TYPE_NAME
+)
+SET
+  `CONTENT_TYPE_ID` = NULLIF(@CONTENT_TYPE_ID, ''),
+  `CONTENT_TYPE_NAME` = NULLIF(@CONTENT_TYPE_NAME, '');
 
 -- ------------------------------------------------
 
-create table if not exists region (
-  region_id varchar(10) primary key,
-  region_name varchar(100));
+CREATE TABLE IF NOT EXISTS `genre` (
+  `GENRE_ID` INT NOT NULL,
+  `GENRE_NAME` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`GENRE_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-load data infile
-'/var/lib/mysql-files/region.csv' 
-into table region
-character set 'utf8mb4'
-fields terminated by ',' 
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
-
--- ------------------------------------------------
-
-create table if not exists role (
-  role_id int primary key,
-  role_name varchar(100) not null);
-
-load data infile
-'/var/lib/mysql-files/role.csv' 
-into table role
-character set 'utf8mb4'
-fields terminated by ',' 
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
+LOAD DATA INFILE '/var/lib/mysql-files/genre.csv'
+INTO TABLE `genre`
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(
+  @GENRE_ID, @GENRE_NAME
+)
+SET
+  `GENRE_ID` = NULLIF(@GENRE_ID, ''),
+  `GENRE_NAME` = NULLIF(@GENRE_NAME, '');
 
 -- ------------------------------------------------
 
-create table if not exists title_type (
-  title_type_id int primary key,
-  title_type_name varchar(100) not null);
+CREATE TABLE IF NOT EXISTS `language` (
+  `LANGUAGE_ID` VARCHAR(10) NOT NULL,
+  `LANGUAGE_NAME` VARCHAR(100),
+  PRIMARY KEY (`LANGUAGE_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-load data infile
-'/var/lib/mysql-files/title_type.csv' 
-into table title_type
-character set 'utf8mb4'
-fields terminated by ',' 
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
-
--- ------------------------------------------------
-
-create table if not exists title (
-  title_id varchar(20) primary key,
-  content_type_id int not null,
-  primary_title varchar(500) not null,
-  original_title varchar(500),
-  is_adult int,
-  start_year int,
-  end_year int,
-  runtime_minutes int);
-
-load data infile
-'/var/lib/mysql-files/title.csv' 
-into table title
-character set 'utf8mb4'
-fields terminated by ',' 
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
-
-alter table title
-add foreign key (content_type_id) 
-references content_type(content_type_id);
+LOAD DATA INFILE '/var/lib/mysql-files/language.csv'
+INTO TABLE `language`
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(
+  @LANGUAGE_ID, @LANGUAGE_NAME
+)
+SET
+  `LANGUAGE_ID` = NULLIF(@LANGUAGE_ID, ''),
+  `LANGUAGE_NAME` = NULLIF(@LANGUAGE_NAME, '');
 
 -- ------------------------------------------------
 
-create table if not exists talent (
-  talent_id varchar(20) primary key,
-  talent_name varchar(500) not null,
-  birth_year int,
-  death_year int);
+CREATE TABLE IF NOT EXISTS `region` (
+  `REGION_ID` VARCHAR(10) NOT NULL,
+  `REGION_NAME` VARCHAR(100),
+  PRIMARY KEY (`REGION_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-load data infile
-'/var/lib/mysql-files/talent.csv' 
-into table talent
-character set 'utf8mb4'
-fields terminated by ',' 
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
-
--- ------------------------------------------------
-
-create table if not exists talent_role (
-  talent_id varchar(20),
-  role_id int,
-  ord int not null,
-  primary key (talent_id, role_id));
-
-load data infile
-'/var/lib/mysql-files/talent_role.csv' 
-into table talent_role
-character set 'utf8mb4'
-fields terminated by ',' 
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
-
-alter table talent_role
-add foreign key (talent_id) 
-references talent(talent_id);
-
-alter table talent_role
-add foreign key (role_id) 
-references role(role_id);
+LOAD DATA INFILE '/var/lib/mysql-files/region.csv'
+INTO TABLE `region`
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(
+  @REGION_ID, @REGION_NAME
+)
+SET
+  `REGION_ID` = NULLIF(@REGION_ID, ''),
+  `REGION_NAME` = NULLIF(@REGION_NAME, '');
 
 -- ------------------------------------------------
 
-create table if not exists talent_title (
-  talent_id varchar(20),
-  title_id varchar(20),
-  primary key (talent_id, title_id));
+CREATE TABLE IF NOT EXISTS `role` (
+  `ROLE_ID` INT NOT NULL,
+  `ROLE_NAME` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`ROLE_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-load data infile
-'/var/lib/mysql-files/talent_title.csv' 
-into table talent_title
-character set 'utf8mb4'
-fields terminated by ',' 
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
-
-alter table talent_title
-add foreign key (talent_id) 
-references talent(talent_id);
-
-alter table talent_title
-add foreign key (title_id)
-references title(title_id);
-
-create index tal_ttl_title_id_idx on talent_title(title_id);
+LOAD DATA INFILE '/var/lib/mysql-files/role.csv'
+INTO TABLE `role`
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(
+  @ROLE_ID, @ROLE_NAME
+)
+SET
+  `ROLE_ID` = NULLIF(@ROLE_ID, ''),
+  `ROLE_NAME` = NULLIF(@ROLE_NAME, '');
 
 -- ------------------------------------------------
 
-create table if not exists title_aka (
-  title_id varchar(20),
-  ord int not null,
-  aka_title varchar(500) not null,
-  region_id varchar(10),
-  language_id varchar(10),
-  additional_attrs varchar(500),
-  is_original_title int,
-  primary key (title_id, ord));
+CREATE TABLE IF NOT EXISTS `title_type` (
+  `TITLE_TYPE_ID` INT NOT NULL,
+  `TITLE_TYPE_NAME` VARCHAR(100) NOT NULL,
+  PRIMARY KEY (`TITLE_TYPE_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-load data infile
-'/var/lib/mysql-files/title_aka.csv' 
-into table title_aka
-character set 'utf8mb4'
-fields terminated by ',' 
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
-
-alter table title_aka
-add foreign key (region_id) 
-references region(region_id);
-
-alter table title_aka
-add foreign key (language_id) 
-references language(language_id);
-
-alter table title_aka
-add foreign key (title_id) 
-references title(title_id);
+LOAD DATA INFILE '/var/lib/mysql-files/title_type.csv'
+INTO TABLE `title_type`
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(
+  @TITLE_TYPE_ID, @TITLE_TYPE_NAME
+)
+SET
+  `TITLE_TYPE_ID` = NULLIF(@TITLE_TYPE_ID, ''),
+  `TITLE_TYPE_NAME` = NULLIF(@TITLE_TYPE_NAME, '');
 
 -- ------------------------------------------------
 
-create table if not exists title_genre (
-  title_id varchar(20),
-  genre_id int,
-  ord int not null,
-  primary key (title_id, genre_id)) ;
+CREATE TABLE IF NOT EXISTS `title` (
+  `TITLE_ID` VARCHAR(20) NOT NULL,
+  `CONTENT_TYPE_ID` INT NOT NULL,
+  `PRIMARY_TITLE` VARCHAR(500) NOT NULL,
+  `ORIGINAL_TITLE` VARCHAR(500),
+  `IS_ADULT` INT,
+  `START_YEAR` INT,
+  `END_YEAR` INT,
+  `RUNTIME_MINUTES` INT,
+  PRIMARY KEY (`TITLE_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-load data infile
-'/var/lib/mysql-files/title_genre.csv' 
-into table title_genre
-character set 'utf8mb4'
-fields terminated by ',' 
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
+LOAD DATA INFILE '/var/lib/mysql-files/title.csv'
+INTO TABLE `title`
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(
+  @TITLE_ID, @CONTENT_TYPE_ID, @PRIMARY_TITLE, @ORIGINAL_TITLE,
+  @IS_ADULT, @START_YEAR, @END_YEAR, @RUNTIME_MINUTES
+)
+SET
+  `TITLE_ID` = NULLIF(@TITLE_ID, ''),
+  `CONTENT_TYPE_ID` = NULLIF(@CONTENT_TYPE_ID, ''),
+  `PRIMARY_TITLE` = NULLIF(@PRIMARY_TITLE, ''),
+  `ORIGINAL_TITLE` = NULLIF(@ORIGINAL_TITLE, ''),
+  `IS_ADULT` = NULLIF(@IS_ADULT, ''),
+  `START_YEAR` = NULLIF(@START_YEAR, ''),
+  `END_YEAR` = NULLIF(@END_YEAR, ''),
+  `RUNTIME_MINUTES` = NULLIF(@RUNTIME_MINUTES, '');
 
-alter table title_genre
-add foreign key (title_id) 
-references title(title_id);
-
-alter table title_genre
-add foreign key (genre_id) 
-references genre(genre_id);
+ALTER TABLE `title`
+ADD FOREIGN KEY (`CONTENT_TYPE_ID`)
+REFERENCES `content_type`(`CONTENT_TYPE_ID`);
 
 -- ------------------------------------------------
-create table if not exists title_principal_raw (
-  title_id varchar(20),
-  talent_id varchar(20),
-  ord int not null,
-  category_id int not null,
-  job varchar(1000),
-  role_names varchar(2000),
-  primary key (title_id, talent_id, ord)
-);
 
-load data infile
-'/var/lib/mysql-files/title_principal.csv'
-into table title_principal_raw
-character set 'utf8mb4'
-fields terminated by ','
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
+CREATE TABLE IF NOT EXISTS `talent` (
+  `TALENT_ID` VARCHAR(20) NOT NULL,
+  `TALENT_NAME` VARCHAR(500) NOT NULL,
+  `BIRTH_YEAR` INT,
+  `DEATH_YEAR` INT,
+  PRIMARY KEY (`TALENT_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-create table if not exists title_principal (
-  title_id varchar(20),
-  talent_id varchar(20),
-  ord int not null,
-  category_id int not null,
-  job varchar(1000),
-  primary key (title_id, talent_id, ord)
-);
+LOAD DATA INFILE '/var/lib/mysql-files/talent.csv'
+INTO TABLE `talent`
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(
+  @TALENT_ID, @TALENT_NAME, @BIRTH_YEAR, @DEATH_YEAR
+)
+SET
+  `TALENT_ID` = NULLIF(@TALENT_ID, ''),
+  `TALENT_NAME` = NULLIF(@TALENT_NAME, ''),
+  `BIRTH_YEAR` = NULLIF(@BIRTH_YEAR, ''),
+  `DEATH_YEAR` = NULLIF(@DEATH_YEAR, '');
 
-insert into title_principal (title_id, talent_id, ord, category_id, job)
-select title_id, talent_id, ord, category_id, job
-from title_principal_raw;
+-- ------------------------------------------------
 
-create index ttl_prin_tal_id_idx on title_principal(talent_id);
-create index ttl_prin_cat_id_idx on title_principal(category_id);
+CREATE TABLE IF NOT EXISTS `talent_role` (
+  `TALENT_ID` VARCHAR(20) NOT NULL,
+  `ROLE_ID` INT NOT NULL,
+  `ORD` INT NOT NULL,
+  PRIMARY KEY (`TALENT_ID`, `ROLE_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+LOAD DATA INFILE '/var/lib/mysql-files/talent_role.csv'
+INTO TABLE `talent_role`
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(
+  @TALENT_ID, @ROLE_ID, @ORD
+)
+SET
+  `TALENT_ID` = NULLIF(@TALENT_ID, ''),
+  `ROLE_ID` = NULLIF(@ROLE_ID, ''),
+  `ORD` = NULLIF(@ORD, '');
+
+ALTER TABLE `talent_role`
+ADD FOREIGN KEY (`TALENT_ID`)
+REFERENCES `talent`(`TALENT_ID`);
+
+ALTER TABLE `talent_role`
+ADD FOREIGN KEY (`ROLE_ID`)
+REFERENCES `role`(`ROLE_ID`);
+
+-- ------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `talent_title` (
+  `TALENT_ID` VARCHAR(20) NOT NULL,
+  `TITLE_ID` VARCHAR(20) NOT NULL,
+  PRIMARY KEY (`TALENT_ID`, `TITLE_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+LOAD DATA INFILE '/var/lib/mysql-files/talent_title.csv'
+INTO TABLE `talent_title`
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(
+  @TALENT_ID, @TITLE_ID
+)
+SET
+  `TALENT_ID` = NULLIF(@TALENT_ID, ''),
+  `TITLE_ID` = NULLIF(@TITLE_ID, '');
+
+ALTER TABLE `talent_title`
+ADD FOREIGN KEY (`TALENT_ID`)
+REFERENCES `talent`(`TALENT_ID`);
+
+ALTER TABLE `talent_title`
+ADD FOREIGN KEY (`TITLE_ID`)
+REFERENCES `title`(`TITLE_ID`);
+
+CREATE INDEX `tal_ttl_title_id_idx` ON `talent_title`(`TITLE_ID`);
+
+-- ------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `title_aka` (
+  `TITLE_ID` VARCHAR(20) NOT NULL,
+  `ORD` INT NOT NULL,
+  `AKA_TITLE` VARCHAR(500) NOT NULL,
+  `REGION_ID` VARCHAR(10),
+  `LANGUAGE_ID` VARCHAR(10),
+  `ADDITIONAL_ATTRS` VARCHAR(500),
+  `IS_ORIGINAL_TITLE` INT,
+  PRIMARY KEY (`TITLE_ID`, `ORD`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+LOAD DATA INFILE '/var/lib/mysql-files/title_aka.csv'
+INTO TABLE `title_aka`
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(
+  @TITLE_ID, @ORD, @AKA_TITLE, @REGION_ID,
+  @LANGUAGE_ID, @ADDITIONAL_ATTRS, @IS_ORIGINAL_TITLE
+)
+SET
+  `TITLE_ID` = NULLIF(@TITLE_ID, ''),
+  `ORD` = NULLIF(@ORD, ''),
+  `AKA_TITLE` = NULLIF(@AKA_TITLE, ''),
+  `REGION_ID` = NULLIF(@REGION_ID, ''),
+  `LANGUAGE_ID` = NULLIF(@LANGUAGE_ID, ''),
+  `ADDITIONAL_ATTRS` = NULLIF(@ADDITIONAL_ATTRS, ''),
+  `IS_ORIGINAL_TITLE` = NULLIF(@IS_ORIGINAL_TITLE, '');
+
+ALTER TABLE `title_aka`
+ADD FOREIGN KEY (`REGION_ID`)
+REFERENCES `region`(`REGION_ID`);
+
+ALTER TABLE `title_aka`
+ADD FOREIGN KEY (`LANGUAGE_ID`)
+REFERENCES `language`(`LANGUAGE_ID`);
+
+ALTER TABLE `title_aka`
+ADD FOREIGN KEY (`TITLE_ID`)
+REFERENCES `title`(`TITLE_ID`);
+
+-- ------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `title_genre` (
+  `TITLE_ID` VARCHAR(20) NOT NULL,
+  `GENRE_ID` INT NOT NULL,
+  `ORD` INT NOT NULL,
+  PRIMARY KEY (`TITLE_ID`, `GENRE_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+LOAD DATA INFILE '/var/lib/mysql-files/title_genre.csv'
+INTO TABLE `title_genre`
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(
+  @TITLE_ID, @GENRE_ID, @ORD
+)
+SET
+  `TITLE_ID` = NULLIF(@TITLE_ID, ''),
+  `GENRE_ID` = NULLIF(@GENRE_ID, ''),
+  `ORD` = NULLIF(@ORD, '');
+
+ALTER TABLE `title_genre`
+ADD FOREIGN KEY (`TITLE_ID`)
+REFERENCES `title`(`TITLE_ID`);
+
+ALTER TABLE `title_genre`
+ADD FOREIGN KEY (`GENRE_ID`)
+REFERENCES `genre`(`GENRE_ID`);
+
+-- ------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `title_principal_raw` (
+  `TITLE_ID` VARCHAR(20) NOT NULL,
+  `TALENT_ID` VARCHAR(20) NOT NULL,
+  `ORD` INT NOT NULL,
+  `CATEGORY_ID` INT NOT NULL,
+  `JOB` VARCHAR(1000),
+  `ROLE_NAMES` VARCHAR(2000),
+  PRIMARY KEY (`TITLE_ID`, `TALENT_ID`, `ORD`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+LOAD DATA INFILE '/var/lib/mysql-files/title_principal.csv'
+INTO TABLE `title_principal_raw`
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(
+  @TITLE_ID, @TALENT_ID, @ORD, @CATEGORY_ID, @JOB, @ROLE_NAMES
+)
+SET
+  `TITLE_ID` = NULLIF(@TITLE_ID, ''),
+  `TALENT_ID` = NULLIF(@TALENT_ID, ''),
+  `ORD` = NULLIF(@ORD, ''),
+  `CATEGORY_ID` = NULLIF(@CATEGORY_ID, ''),
+  `JOB` = NULLIF(@JOB, ''),
+  `ROLE_NAMES` = NULLIF(@ROLE_NAMES, '');
+
+CREATE TABLE IF NOT EXISTS `title_principal` (
+  `TITLE_ID` VARCHAR(20) NOT NULL,
+  `TALENT_ID` VARCHAR(20) NOT NULL,
+  `ORD` INT NOT NULL,
+  `CATEGORY_ID` INT NOT NULL,
+  `JOB` VARCHAR(1000),
+  PRIMARY KEY (`TITLE_ID`, `TALENT_ID`, `ORD`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+INSERT INTO `title_principal` (`TITLE_ID`, `TALENT_ID`, `ORD`, `CATEGORY_ID`, `JOB`)
+SELECT `TITLE_ID`, `TALENT_ID`, `ORD`, `CATEGORY_ID`, `JOB`
+FROM `title_principal_raw`;
+
+CREATE INDEX `ttl_prin_tal_id_idx` ON `title_principal`(`TALENT_ID`);
+CREATE INDEX `ttl_prin_cat_id_idx` ON `title_principal`(`CATEGORY_ID`);
 
 -- remove any rows where the title or talent is missing
-delete tp
-from title_principal tp
-left join talent t
-  on tp.talent_id = t.talent_id
-where t.talent_id is null;
+DELETE tp
+FROM `title_principal` tp
+LEFT JOIN `talent` t
+  ON tp.`TALENT_ID` = t.`TALENT_ID`
+WHERE t.`TALENT_ID` IS NULL;
 
-alter table title_principal
-add foreign key (title_id)
-references title(title_id);
+ALTER TABLE `title_principal`
+ADD FOREIGN KEY (`TITLE_ID`)
+REFERENCES `title`(`TITLE_ID`);
 
-alter table title_principal
-add foreign key (talent_id)
-references talent(talent_id);
+ALTER TABLE `title_principal`
+ADD FOREIGN KEY (`TALENT_ID`)
+REFERENCES `talent`(`TALENT_ID`);
 
-alter table title_principal
-add foreign key (category_id)
-references category(category_id);
+ALTER TABLE `title_principal`
+ADD FOREIGN KEY (`CATEGORY_ID`)
+REFERENCES `category`(`CATEGORY_ID`);
 
-create table if not exists principal_role (
-  title_id varchar(20),
-  talent_id varchar(20),
-  ord int not null,
-  role_name varchar(255) not null,
-  primary key (title_id, talent_id, ord, role_name)
-);
+CREATE TABLE IF NOT EXISTS `principal_role` (
+  `TITLE_ID` VARCHAR(20) NOT NULL,
+  `TALENT_ID` VARCHAR(20) NOT NULL,
+  `ORD` INT NOT NULL,
+  `ROLE_NAME` VARCHAR(255) NOT NULL,
+  PRIMARY KEY (`TITLE_ID`, `TALENT_ID`, `ORD`, `ROLE_NAME`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-insert into principal_role (title_id, talent_id, ord, role_name)
-select distinct
-    r.title_id,
-    r.talent_id,
-    r.ord,
-    trim(substring_index(substring_index(r.role_names, ',', numbers.n), ',', -1)) as role_name
-from title_principal_raw r
-join title_principal tp
-  on r.title_id = tp.title_id
- and r.talent_id = tp.talent_id
- and r.ord = tp.ord
-join (
-    select 1 as n union select 2 union select 3 union select 4 union select 5
-    union select 6 union select 7 union select 8 union select 9 union select 10
+INSERT INTO `principal_role` (`TITLE_ID`, `TALENT_ID`, `ORD`, `ROLE_NAME`)
+SELECT DISTINCT
+  r.`TITLE_ID`,
+  r.`TALENT_ID`,
+  r.`ORD`,
+  TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(r.`ROLE_NAMES`, ',', numbers.n), ',', -1)) AS `ROLE_NAME`
+FROM `title_principal_raw` r
+JOIN `title_principal` tp
+  ON r.`TITLE_ID` = tp.`TITLE_ID`
+ AND r.`TALENT_ID` = tp.`TALENT_ID`
+ AND r.`ORD` = tp.`ORD`
+JOIN (
+  SELECT 1 AS n UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5
+  UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9 UNION SELECT 10
 ) numbers
-  on char_length(r.role_names) - char_length(replace(r.role_names, ',', '')) >= numbers.n - 1
-where r.role_names is not null
-and trim(r.role_names) <> ''
-and trim(substring_index(substring_index(r.role_names, ',', numbers.n), ',', -1)) <> '';
+  ON CHAR_LENGTH(r.`ROLE_NAMES`) - CHAR_LENGTH(REPLACE(r.`ROLE_NAMES`, ',', '')) >= numbers.n - 1
+WHERE r.`ROLE_NAMES` IS NOT NULL
+  AND TRIM(r.`ROLE_NAMES`) <> ''
+  AND TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(r.`ROLE_NAMES`, ',', numbers.n), ',', -1)) <> '';
 
-alter table principal_role
-add foreign key (title_id, talent_id, ord)
-references title_principal(title_id, talent_id, ord);
-
--- ------------------------------------------------
-
-create table if not exists title_aka_title_type (
-  title_id varchar(20),
-  title_type_id int,
-  ord int not null,
-  primary key (title_id, title_type_id, ord));
-
-load data infile
-'/var/lib/mysql-files/title_aka_title_type.csv' 
-into table title_aka_title_type
-character set 'utf8mb4'
-fields terminated by ',' 
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
-
-alter table title_aka_title_type
-add foreign key (title_type_id) 
-references title_type(title_type_id);
-
-
-alter table title_aka_title_type
-add foreign key (title_id, ord)
-references title_aka(title_id, ord);
+ALTER TABLE `principal_role`
+ADD FOREIGN KEY (`TITLE_ID`, `TALENT_ID`, `ORD`)
+REFERENCES `title_principal`(`TITLE_ID`, `TALENT_ID`, `ORD`);
 
 -- ------------------------------------------------
 
-create table if not exists title_episode (
-  title_id varchar(20),
-  parent_title_id varchar(20),
-  season_number int,
-  episode_number int,
-  primary key (title_id));
+CREATE TABLE IF NOT EXISTS `title_aka_title_type` (
+  `TITLE_ID` VARCHAR(20) NOT NULL,
+  `TITLE_TYPE_ID` INT NOT NULL,
+  `ORD` INT NOT NULL,
+  PRIMARY KEY (`TITLE_ID`, `TITLE_TYPE_ID`, `ORD`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
-load data infile
-'/var/lib/mysql-files/title_episode.csv' 
-into table title_episode
-character set 'utf8mb4'
-fields terminated by ',' 
-optionally enclosed by '"'
-lines terminated by '\r\n'
-ignore 1 lines;
+LOAD DATA INFILE '/var/lib/mysql-files/title_aka_title_type.csv'
+INTO TABLE `title_aka_title_type`
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(
+  @TITLE_ID, @TITLE_TYPE_ID, @ORD
+)
+SET
+  `TITLE_ID` = NULLIF(@TITLE_ID, ''),
+  `TITLE_TYPE_ID` = NULLIF(@TITLE_TYPE_ID, ''),
+  `ORD` = NULLIF(@ORD, '');
 
-alter table title_episode
-add foreign key (title_id)
-references title(title_id);
+ALTER TABLE `title_aka_title_type`
+ADD FOREIGN KEY (`TITLE_TYPE_ID`)
+REFERENCES `title_type`(`TITLE_TYPE_ID`);
 
-alter table title_episode
-add foreign key (parent_title_id)
-references title(title_id); 
+ALTER TABLE `title_aka_title_type`
+ADD FOREIGN KEY (`TITLE_ID`, `ORD`)
+REFERENCES `title_aka`(`TITLE_ID`, `ORD`);
 
-create index ttl_epi_par_idx on title_episode(parent_title_id);
+-- ------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `title_episode` (
+  `TITLE_ID` VARCHAR(20) NOT NULL,
+  `PARENT_TITLE_ID` VARCHAR(20),
+  `SEASON_NUMBER` INT,
+  `EPISODE_NUMBER` INT,
+  PRIMARY KEY (`TITLE_ID`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+LOAD DATA INFILE '/var/lib/mysql-files/title_episode.csv'
+INTO TABLE `title_episode`
+CHARACTER SET utf8mb4
+FIELDS TERMINATED BY ','
+OPTIONALLY ENCLOSED BY '"'
+LINES TERMINATED BY '\r\n'
+IGNORE 1 ROWS
+(
+  @TITLE_ID, @PARENT_TITLE_ID, @SEASON_NUMBER, @EPISODE_NUMBER
+)
+SET
+  `TITLE_ID` = NULLIF(@TITLE_ID, ''),
+  `PARENT_TITLE_ID` = NULLIF(@PARENT_TITLE_ID, ''),
+  `SEASON_NUMBER` = NULLIF(@SEASON_NUMBER, ''),
+  `EPISODE_NUMBER` = NULLIF(@EPISODE_NUMBER, '');
+
+ALTER TABLE `title_episode`
+ADD FOREIGN KEY (`TITLE_ID`)
+REFERENCES `title`(`TITLE_ID`);
+
+ALTER TABLE `title_episode`
+ADD FOREIGN KEY (`PARENT_TITLE_ID`)
+REFERENCES `title`(`TITLE_ID`);
+
+CREATE INDEX `ttl_epi_par_idx` ON `title_episode`(`PARENT_TITLE_ID`);
 
 -- ------------------------------------------------
 
@@ -442,394 +569,395 @@ create index ttl_epi_par_idx on title_episode(parent_title_id);
 -- are rough mappings and may not be 100% accurate. Suitable
 -- only for demos and testing, NOT for production use.
 
-update imdb.language set language_name = 'Basque' where language_id = 'eu';
-update imdb.language set language_name = 'Kurdish' where language_id = 'ku';
-update imdb.language set language_name = 'Sindhi' where language_id = 'sd';
-update imdb.language set language_name = 'Erzya' where language_id = 'myv';
-update imdb.language set language_name = 'private usage' where language_id = 'qbp';
-update imdb.language set language_name = 'Zulu' where language_id = 'zu';
-update imdb.language set language_name = 'Punjabi' where language_id = 'pa';
-update imdb.language set language_name = 'Latin' where language_id = 'la';
-update imdb.language set language_name = 'Italian' where language_id = 'it';
-update imdb.language set language_name = 'Yiddish' where language_id = 'yi';
-update imdb.language set language_name = 'Armenian' where language_id = 'hy';
-update imdb.language set language_name = 'Mongolian' where language_id = 'mn';
-update imdb.language set language_name = 'Malay' where language_id = 'ms';
-update imdb.language set language_name = 'Estonian' where language_id = 'et';
-update imdb.language set language_name = 'Welsh' where language_id = 'cy';
-update imdb.language set language_name = 'Kannada' where language_id = 'kn';
-update imdb.language set language_name = 'Chinese' where language_id = 'zh';
-update imdb.language set language_name = 'Cree' where language_id = 'cr';
-update imdb.language set language_name = 'Hawaiian' where language_id = 'haw';
-update imdb.language set language_name = 'Croatian' where language_id = 'hr';
-update imdb.language set language_name = 'Azerbaijani' where language_id = 'az';
-update imdb.language set language_name = 'Inuktitut' where language_id = 'iu';
-update imdb.language set language_name = 'Tamil' where language_id = 'ta';
-update imdb.language set language_name = 'Catalan' where language_id = 'ca';
-update imdb.language set language_name = 'Macedonian' where language_id = 'mk';
-update imdb.language set language_name = 'Sesotho' where language_id = 'st';
-update imdb.language set language_name = 'Burmese' where language_id = 'my';
-update imdb.language set language_name = 'Albanian' where language_id = 'sq';
-update imdb.language set language_name = 'Hungarian' where language_id = 'hu';
-update imdb.language set language_name = 'Wolof' where language_id = 'wo';
-update imdb.language set language_name = 'Danish' where language_id = 'da';
-update imdb.language set language_name = 'Gujarati' where language_id = 'gu';
-update imdb.language set language_name = 'Swedish' where language_id = 'sv';
-update imdb.language set language_name = 'Georgian' where language_id = 'ka';
-update imdb.language set language_name = 'Icelandic' where language_id = 'is';
-update imdb.language set language_name = 'Byelorussian' where language_id = 'be';
-update imdb.language set language_name = 'Turkish' where language_id = 'tr';
-update imdb.language set language_name = 'Russian' where language_id = 'ru';
-update imdb.language set language_name = 'Mandarin Chinese' where language_id = 'cmn';
-update imdb.language set language_name = 'French' where language_id = 'fr';
-update imdb.language set language_name = 'Malayalam' where language_id = 'ml';
-update imdb.language set language_name = 'Thai' where language_id = 'th';
-update imdb.language set language_name = 'Tajik' where language_id = 'tg';
-update imdb.language set language_name = 'Norwegian' where language_id = 'no';
-update imdb.language set language_name = 'Latvian, Lettish' where language_id = 'lv';
-update imdb.language set language_name = 'Spanish' where language_id = 'es';
-update imdb.language set language_name = 'Korean' where language_id = 'ko';
-update imdb.language set language_name = 'Lithuanian' where language_id = 'lt';
-update imdb.language set language_name = 'Serbian' where language_id = 'sr';
-update imdb.language set language_name = 'Rhaeto-Romance' where language_id = 'rm';
-update imdb.language set language_name = 'Galician' where language_id = 'gl';
-update imdb.language set language_name = 'Dutch' where language_id = 'nl';
-update imdb.language set language_name = 'Czech' where language_id = 'cs';
-update imdb.language set language_name = 'Laothian' where language_id = 'lo';
-update imdb.language set language_name = 'Kazakh' where language_id = 'kk';
-update imdb.language set language_name = 'Japanese' where language_id = 'ja';
-update imdb.language set language_name = 'Persian' where language_id = 'fa';
-update imdb.language set language_name = 'Pashto, Pushto' where language_id = 'ps';
-update imdb.language set language_name = 'Swiss German' where language_id = 'gsw';
-update imdb.language set language_name = 'Tegulu' where language_id = 'te';
-update imdb.language set language_name = 'Xhosa' where language_id = 'xh';
-update imdb.language set language_name = 'Bengali, Bangla' where language_id = 'bn';
-update imdb.language set language_name = 'Gaelic' where language_id = 'gd';
-update imdb.language set language_name = 'Dari' where language_id = 'prs';
-update imdb.language set language_name = 'Urdu' where language_id = 'ur';
-update imdb.language set language_name = 'Greek' where language_id = 'el';
-update imdb.language set language_name = 'Afrikaans' where language_id = 'af';
-update imdb.language set language_name = 'Finnish' where language_id = 'fi';
-update imdb.language set language_name = 'private usage' where language_id = 'qac';
-update imdb.language set language_name = 'Kirghiz' where language_id = 'ky';
-update imdb.language set language_name = 'Slovenian' where language_id = 'sl';
-update imdb.language set language_name = 'Hindi' where language_id = 'hi';
-update imdb.language set language_name = 'N''Ko' where language_id = 'nqo';
-update imdb.language set language_name = 'Uzbek' where language_id = 'uz';
-update imdb.language set language_name = 'German' where language_id = 'de';
-update imdb.language set language_name = 'Hebrew' where language_id = 'he';
-update imdb.language set language_name = 'Marathi' where language_id = 'mr';
-update imdb.language set language_name = 'Polish' where language_id = 'pl';
-update imdb.language set language_name = 'Arabic' where language_id = 'ar';
-update imdb.language set language_name = 'Setswana' where language_id = 'tn';
-update imdb.language set language_name = 'Cantonese' where language_id = 'yue';
-update imdb.language set language_name = 'Bosnian' where language_id = 'bs';
-update imdb.language set language_name = 'Irish' where language_id = 'ga';
-update imdb.language set language_name = 'Maori' where language_id = 'mi';
-update imdb.language set language_name = 'Amharic' where language_id = 'am';
-update imdb.language set language_name = 'Portuguese' where language_id = 'pt';
-update imdb.language set language_name = 'Ukrainian' where language_id = 'uk';
-update imdb.language set language_name = 'Kirundi' where language_id = 'rn';
-update imdb.language set language_name = 'Tagalog' where language_id = 'tl';
-update imdb.language set language_name = 'English' where language_id = 'en';
-update imdb.language set language_name = 'Indonesian' where language_id = 'id';
-update imdb.language set language_name = 'private usage' where language_id = 'qal';
-update imdb.language set language_name = 'Old French' where language_id = 'fro';
-update imdb.language set language_name = 'Old High German' where language_id = 'goh';
-update imdb.language set language_name = 'Bulgarian' where language_id = 'bg';
-update imdb.language set language_name = 'private usage' where language_id = 'qbn';
-update imdb.language set language_name = 'private usage' where language_id = 'qbo';
-update imdb.language set language_name = 'Romanian' where language_id = 'ro';
-update imdb.language set language_name = 'Vietnamese' where language_id = 'vi';
-update imdb.language set language_name = 'Nepali' where language_id = 'ne';
-update imdb.language set language_name = 'Slovak' where language_id = 'sk';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Basque' WHERE `LANGUAGE_ID` = 'eu';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Kurdish' WHERE `LANGUAGE_ID` = 'ku';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Sindhi' WHERE `LANGUAGE_ID` = 'sd';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Erzya' WHERE `LANGUAGE_ID` = 'myv';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'private usage' WHERE `LANGUAGE_ID` = 'qbp';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Zulu' WHERE `LANGUAGE_ID` = 'zu';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Punjabi' WHERE `LANGUAGE_ID` = 'pa';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Latin' WHERE `LANGUAGE_ID` = 'la';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Italian' WHERE `LANGUAGE_ID` = 'it';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Yiddish' WHERE `LANGUAGE_ID` = 'yi';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Armenian' WHERE `LANGUAGE_ID` = 'hy';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Mongolian' WHERE `LANGUAGE_ID` = 'mn';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Malay' WHERE `LANGUAGE_ID` = 'ms';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Estonian' WHERE `LANGUAGE_ID` = 'et';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Welsh' WHERE `LANGUAGE_ID` = 'cy';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Kannada' WHERE `LANGUAGE_ID` = 'kn';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Chinese' WHERE `LANGUAGE_ID` = 'zh';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Cree' WHERE `LANGUAGE_ID` = 'cr';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Hawaiian' WHERE `LANGUAGE_ID` = 'haw';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Croatian' WHERE `LANGUAGE_ID` = 'hr';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Azerbaijani' WHERE `LANGUAGE_ID` = 'az';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Inuktitut' WHERE `LANGUAGE_ID` = 'iu';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Tamil' WHERE `LANGUAGE_ID` = 'ta';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Catalan' WHERE `LANGUAGE_ID` = 'ca';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Macedonian' WHERE `LANGUAGE_ID` = 'mk';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Sesotho' WHERE `LANGUAGE_ID` = 'st';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Burmese' WHERE `LANGUAGE_ID` = 'my';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Albanian' WHERE `LANGUAGE_ID` = 'sq';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Hungarian' WHERE `LANGUAGE_ID` = 'hu';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Wolof' WHERE `LANGUAGE_ID` = 'wo';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Danish' WHERE `LANGUAGE_ID` = 'da';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Gujarati' WHERE `LANGUAGE_ID` = 'gu';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Swedish' WHERE `LANGUAGE_ID` = 'sv';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Georgian' WHERE `LANGUAGE_ID` = 'ka';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Icelandic' WHERE `LANGUAGE_ID` = 'is';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Byelorussian' WHERE `LANGUAGE_ID` = 'be';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Turkish' WHERE `LANGUAGE_ID` = 'tr';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Russian' WHERE `LANGUAGE_ID` = 'ru';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Mandarin Chinese' WHERE `LANGUAGE_ID` = 'cmn';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'French' WHERE `LANGUAGE_ID` = 'fr';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Malayalam' WHERE `LANGUAGE_ID` = 'ml';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Thai' WHERE `LANGUAGE_ID` = 'th';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Tajik' WHERE `LANGUAGE_ID` = 'tg';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Norwegian' WHERE `LANGUAGE_ID` = 'no';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Latvian, Lettish' WHERE `LANGUAGE_ID` = 'lv';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Spanish' WHERE `LANGUAGE_ID` = 'es';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Korean' WHERE `LANGUAGE_ID` = 'ko';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Lithuanian' WHERE `LANGUAGE_ID` = 'lt';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Serbian' WHERE `LANGUAGE_ID` = 'sr';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Rhaeto-Romance' WHERE `LANGUAGE_ID` = 'rm';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Galician' WHERE `LANGUAGE_ID` = 'gl';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Dutch' WHERE `LANGUAGE_ID` = 'nl';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Czech' WHERE `LANGUAGE_ID` = 'cs';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Laothian' WHERE `LANGUAGE_ID` = 'lo';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Kazakh' WHERE `LANGUAGE_ID` = 'kk';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Japanese' WHERE `LANGUAGE_ID` = 'ja';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Persian' WHERE `LANGUAGE_ID` = 'fa';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Pashto, Pushto' WHERE `LANGUAGE_ID` = 'ps';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Swiss German' WHERE `LANGUAGE_ID` = 'gsw';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Tegulu' WHERE `LANGUAGE_ID` = 'te';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Xhosa' WHERE `LANGUAGE_ID` = 'xh';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Bengali, Bangla' WHERE `LANGUAGE_ID` = 'bn';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Gaelic' WHERE `LANGUAGE_ID` = 'gd';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Dari' WHERE `LANGUAGE_ID` = 'prs';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Urdu' WHERE `LANGUAGE_ID` = 'ur';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Greek' WHERE `LANGUAGE_ID` = 'el';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Afrikaans' WHERE `LANGUAGE_ID` = 'af';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Finnish' WHERE `LANGUAGE_ID` = 'fi';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'private usage' WHERE `LANGUAGE_ID` = 'qac';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Kirghiz' WHERE `LANGUAGE_ID` = 'ky';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Slovenian' WHERE `LANGUAGE_ID` = 'sl';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Hindi' WHERE `LANGUAGE_ID` = 'hi';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'N''Ko' WHERE `LANGUAGE_ID` = 'nqo';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Uzbek' WHERE `LANGUAGE_ID` = 'uz';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'German' WHERE `LANGUAGE_ID` = 'de';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Hebrew' WHERE `LANGUAGE_ID` = 'he';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Marathi' WHERE `LANGUAGE_ID` = 'mr';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Polish' WHERE `LANGUAGE_ID` = 'pl';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Arabic' WHERE `LANGUAGE_ID` = 'ar';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Setswana' WHERE `LANGUAGE_ID` = 'tn';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Cantonese' WHERE `LANGUAGE_ID` = 'yue';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Bosnian' WHERE `LANGUAGE_ID` = 'bs';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Irish' WHERE `LANGUAGE_ID` = 'ga';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Maori' WHERE `LANGUAGE_ID` = 'mi';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Amharic' WHERE `LANGUAGE_ID` = 'am';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Portuguese' WHERE `LANGUAGE_ID` = 'pt';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Ukrainian' WHERE `LANGUAGE_ID` = 'uk';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Kirundi' WHERE `LANGUAGE_ID` = 'rn';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Tagalog' WHERE `LANGUAGE_ID` = 'tl';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'English' WHERE `LANGUAGE_ID` = 'en';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Indonesian' WHERE `LANGUAGE_ID` = 'id';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'private usage' WHERE `LANGUAGE_ID` = 'qal';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Old French' WHERE `LANGUAGE_ID` = 'fro';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Old High German' WHERE `LANGUAGE_ID` = 'goh';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Bulgarian' WHERE `LANGUAGE_ID` = 'bg';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'private usage' WHERE `LANGUAGE_ID` = 'qbn';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'private usage' WHERE `LANGUAGE_ID` = 'qbo';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Romanian' WHERE `LANGUAGE_ID` = 'ro';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Vietnamese' WHERE `LANGUAGE_ID` = 'vi';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Nepali' WHERE `LANGUAGE_ID` = 'ne';
+UPDATE `imdb`.`language` SET `LANGUAGE_NAME` = 'Slovak' WHERE `LANGUAGE_ID` = 'sk';
 
 -- ------------------------------------------------
 
-update imdb.region set region_name = 'United Kingdom' where region_id = 'GB';
-update imdb.region set region_name = 'Bhutan' where region_id = 'BT';
-update imdb.region set region_name = 'Iran' where region_id = 'IR';
-update imdb.region set region_name = 'Cyprus' where region_id = 'CY';
-update imdb.region set region_name = 'Benin' where region_id = 'BJ';
-update imdb.region set region_name = 'Malta' where region_id = 'MT';
-update imdb.region set region_name = 'Bermuda' where region_id = 'BM';
-update imdb.region set region_name = 'Pakistan' where region_id = 'PK';
-update imdb.region set region_name = 'Gambia' where region_id = 'GM';
-update imdb.region set region_name = 'Belize' where region_id = 'BZ';
-update imdb.region set region_name = 'United Arab Emirates' where region_id = 'AE';
-update imdb.region set region_name = 'Madagascar' where region_id = 'MG';
-update imdb.region set region_name = 'Peru' where region_id = 'PE';
-update imdb.region set region_name = 'Moldova' where region_id = 'MD';
-update imdb.region set region_name = 'Slovenia' where region_id = 'SI';
-update imdb.region set region_name = 'unknown' where region_id = 'XSA';
-update imdb.region set region_name = 'Côte d''Ivoire' where region_id = 'CI';
-update imdb.region set region_name = 'Rwanda' where region_id = 'RW';
-update imdb.region set region_name = 'Canada' where region_id = 'CA';
-update imdb.region set region_name = 'Congo' where region_id = 'CG';
-update imdb.region set region_name = 'Bolivia' where region_id = 'BO';
-update imdb.region set region_name = 'Kuwait' where region_id = 'KW';
-update imdb.region set region_name = 'unknown' where region_id = 'XWW';
-update imdb.region set region_name = 'Syrian Arab Republic' where region_id = 'SY';
-update imdb.region set region_name = 'Northern Mariana Islands' where region_id = 'MP';
-update imdb.region set region_name = 'Equatorial Guinea' where region_id = 'GQ';
-update imdb.region set region_name = 'Iceland' where region_id = 'IS';
-update imdb.region set region_name = 'Switzerland' where region_id = 'CH';
-update imdb.region set region_name = 'Republic of North Macedonia' where region_id = 'MK';
-update imdb.region set region_name = 'Honduras' where region_id = 'HN';
-update imdb.region set region_name = 'Guam' where region_id = 'GU';
-update imdb.region set region_name = 'China' where region_id = 'CN';
-update imdb.region set region_name = 'Eswatini' where region_id = 'SZ';
-update imdb.region set region_name = 'Comoros' where region_id = 'KM';
-update imdb.region set region_name = 'Palau' where region_id = 'PW';
-update imdb.region set region_name = 'Uruguay' where region_id = 'UY';
-update imdb.region set region_name = 'Morocco' where region_id = 'MA';
-update imdb.region set region_name = 'Senegal' where region_id = 'SN';
-update imdb.region set region_name = 'Croatia' where region_id = 'HR';
-update imdb.region set region_name = 'Argentina' where region_id = 'AR';
-update imdb.region set region_name = 'Niger' where region_id = 'NE';
-update imdb.region set region_name = 'Niue' where region_id = 'NU';
-update imdb.region set region_name = 'Zimbabwe' where region_id = 'ZW';
-update imdb.region set region_name = 'Montserrat' where region_id = 'MS';
-update imdb.region set region_name = 'United States of America' where region_id = 'US';
-update imdb.region set region_name = 'unknown' where region_id = 'XKV';
-update imdb.region set region_name = 'Vanuatu' where region_id = 'VU';
-update imdb.region set region_name = 'Zambia' where region_id = 'ZM';
-update imdb.region set region_name = 'Cayman Islands' where region_id = 'KY';
-update imdb.region set region_name = 'Macao' where region_id = 'MO';
-update imdb.region set region_name = 'Eritrea' where region_id = 'ER';
-update imdb.region set region_name = 'Marshall Islands' where region_id = 'MH';
-update imdb.region set region_name = 'Thailand' where region_id = 'TH';
-update imdb.region set region_name = 'Sao Tome and Principe' where region_id = 'ST';
-update imdb.region set region_name = 'Gabon' where region_id = 'GA';
-update imdb.region set region_name = 'Austria' where region_id = 'AT';
-update imdb.region set region_name = 'Djibouti' where region_id = 'DJ';
-update imdb.region set region_name = 'Germany' where region_id = 'DE';
-update imdb.region set region_name = 'Palestine' where region_id = 'PS';
-update imdb.region set region_name = 'Venezuela' where region_id = 'VE';
-update imdb.region set region_name = 'Finland' where region_id = 'FI';
-update imdb.region set region_name = 'Japan' where region_id = 'JP';
-update imdb.region set region_name = 'unknown' where region_id = 'SUHH';
-update imdb.region set region_name = 'Hong Kong' where region_id = 'HK';
-update imdb.region set region_name = 'Greenland' where region_id = 'GL';
-update imdb.region set region_name = 'Seychelles' where region_id = 'SC';
-update imdb.region set region_name = 'Nepal' where region_id = 'NP';
-update imdb.region set region_name = 'American Samoa' where region_id = 'AS';
-update imdb.region set region_name = 'Virgin Islands (U.K.)' where region_id = 'VG';
-update imdb.region set region_name = 'unknown' where region_id = 'XAU';
-update imdb.region set region_name = 'Tuvalu' where region_id = 'TV';
-update imdb.region set region_name = 'Guatemala' where region_id = 'GT';
-update imdb.region set region_name = 'unknown' where region_id = 'XSI';
-update imdb.region set region_name = 'Myanmar' where region_id = 'MM';
-update imdb.region set region_name = 'Solomon Islands' where region_id = 'SB';
-update imdb.region set region_name = 'Guinea' where region_id = 'GN';
-update imdb.region set region_name = 'Russian Federation' where region_id = 'RU';
-update imdb.region set region_name = 'Tajikistan' where region_id = 'TJ';
-update imdb.region set region_name = 'Algeria' where region_id = 'DZ';
-update imdb.region set region_name = 'Cook Islands' where region_id = 'CK';
-update imdb.region set region_name = 'Kiribati' where region_id = 'KI';
-update imdb.region set region_name = 'Indonesia' where region_id = 'ID';
-update imdb.region set region_name = 'North Korea' where region_id = 'KP';
-update imdb.region set region_name = 'Grenada' where region_id = 'GD';
-update imdb.region set region_name = 'Gibraltar' where region_id = 'GI';
-update imdb.region set region_name = 'Bosnia and Herzegovina' where region_id = 'BA';
-update imdb.region set region_name = 'Cuba' where region_id = 'CU';
-update imdb.region set region_name = 'Sri Lanka' where region_id = 'LK';
-update imdb.region set region_name = 'Wallis and Futuna' where region_id = 'WF';
-update imdb.region set region_name = 'Bahamas' where region_id = 'BS';
-update imdb.region set region_name = 'unknown' where region_id = 'XAS';
-update imdb.region set region_name = 'Liechtenstein' where region_id = 'LI';
-update imdb.region set region_name = 'Cabo Verde' where region_id = 'CV';
-update imdb.region set region_name = 'Timor-Leste' where region_id = 'TL';
-update imdb.region set region_name = 'unknown' where region_id = 'XWG';
-update imdb.region set region_name = 'Kyrgyzstan' where region_id = 'KG';
-update imdb.region set region_name = 'Trinidad and Tobago' where region_id = 'TT';
-update imdb.region set region_name = 'Mozambique' where region_id = 'MZ';
-update imdb.region set region_name = 'Saint Vincent and the Grenadines' where region_id = 'VC';
-update imdb.region set region_name = 'Ethiopia' where region_id = 'ET';
-update imdb.region set region_name = 'Bulgaria' where region_id = 'BG';
-update imdb.region set region_name = 'Australia' where region_id = 'AU';
-update imdb.region set region_name = 'Haiti' where region_id = 'HT';
-update imdb.region set region_name = 'Papua New Guinea' where region_id = 'PG';
-update imdb.region set region_name = 'Botswana' where region_id = 'BW';
-update imdb.region set region_name = 'Ecuador' where region_id = 'EC';
-update imdb.region set region_name = 'Monaco' where region_id = 'MC';
-update imdb.region set region_name = 'Guinea-Bissau' where region_id = 'GW';
-update imdb.region set region_name = 'Mali' where region_id = 'ML';
-update imdb.region set region_name = 'South Korea' where region_id = 'KR';
-update imdb.region set region_name = 'unknown' where region_id = 'VDVN';
-update imdb.region set region_name = 'Oman' where region_id = 'OM';
-update imdb.region set region_name = 'unknown' where region_id = 'ZRCD';
-update imdb.region set region_name = 'Aruba' where region_id = 'AW';
-update imdb.region set region_name = 'New Caledonia' where region_id = 'NC';
-update imdb.region set region_name = 'Italy' where region_id = 'IT';
-update imdb.region set region_name = 'unknown' where region_id = 'CSHH';
-update imdb.region set region_name = 'Hungary' where region_id = 'HU';
-update imdb.region set region_name = 'Spain' where region_id = 'ES';
-update imdb.region set region_name = 'Israel' where region_id = 'IL';
-update imdb.region set region_name = 'France' where region_id = 'FR';
-update imdb.region set region_name = 'Namibia' where region_id = 'NA';
-update imdb.region set region_name = 'unknown' where region_id = 'XNA';
-update imdb.region set region_name = 'Somalia' where region_id = 'SO';
-update imdb.region set region_name = 'Chile' where region_id = 'CL';
-update imdb.region set region_name = 'Andorra' where region_id = 'AD';
-update imdb.region set region_name = 'French Polynesia' where region_id = 'PF';
-update imdb.region set region_name = 'Nicaragua' where region_id = 'NI';
-update imdb.region set region_name = 'Sudan' where region_id = 'SD';
-update imdb.region set region_name = 'Chad' where region_id = 'TD';
-update imdb.region set region_name = 'Barbados' where region_id = 'BB';
-update imdb.region set region_name = 'Portugal' where region_id = 'PT';
-update imdb.region set region_name = 'unknown' where region_id = 'BUMM';
-update imdb.region set region_name = 'Luxembourg' where region_id = 'LU';
-update imdb.region set region_name = 'Singapore' where region_id = 'SG';
-update imdb.region set region_name = 'Mauritius' where region_id = 'MU';
-update imdb.region set region_name = 'Yemen' where region_id = 'YE';
-update imdb.region set region_name = 'Dominica' where region_id = 'DM';
-update imdb.region set region_name = 'Jersey' where region_id = 'JE';
-update imdb.region set region_name = 'Colombia' where region_id = 'CO';
-update imdb.region set region_name = 'Ghana' where region_id = 'GH';
-update imdb.region set region_name = 'unknown' where region_id = 'XYU';
-update imdb.region set region_name = 'Sierra Leone' where region_id = 'SL';
-update imdb.region set region_name = 'Mexico' where region_id = 'MX';
-update imdb.region set region_name = 'unknown' where region_id = 'XKO';
-update imdb.region set region_name = 'Jamaica' where region_id = 'JM';
-update imdb.region set region_name = 'Denmark' where region_id = 'DK';
-update imdb.region set region_name = 'Costa Rica' where region_id = 'CR';
-update imdb.region set region_name = 'Czechia' where region_id = 'CZ';
-update imdb.region set region_name = 'Montenegro' where region_id = 'ME';
-update imdb.region set region_name = 'Azerbaijan' where region_id = 'AZ';
-update imdb.region set region_name = 'Cambodia' where region_id = 'KH';
-update imdb.region set region_name = 'Armenia' where region_id = 'AM';
-update imdb.region set region_name = 'Martinique' where region_id = 'MQ';
-update imdb.region set region_name = 'Réunion' where region_id = 'RE';
-update imdb.region set region_name = 'Norway' where region_id = 'NO';
-update imdb.region set region_name = 'Qatar' where region_id = 'QA';
-update imdb.region set region_name = 'Belgium' where region_id = 'BE';
-update imdb.region set region_name = 'Angola' where region_id = 'AO';
-update imdb.region set region_name = 'Egypt' where region_id = 'EG';
-update imdb.region set region_name = 'Saint Kitts and Nevis' where region_id = 'KN';
-update imdb.region set region_name = 'Nauru' where region_id = 'NR';
-update imdb.region set region_name = 'Liberia' where region_id = 'LR';
-update imdb.region set region_name = 'Romania' where region_id = 'RO';
-update imdb.region set region_name = 'Saudi Arabia' where region_id = 'SA';
-update imdb.region set region_name = 'Antarctica' where region_id = 'AQ';
-update imdb.region set region_name = 'Afghanistan' where region_id = 'AF';
-update imdb.region set region_name = 'Turkey' where region_id = 'TR';
-update imdb.region set region_name = 'Mongolia' where region_id = 'MN';
-update imdb.region set region_name = 'Jordan' where region_id = 'JO';
-update imdb.region set region_name = 'Saint Lucia' where region_id = 'LC';
-update imdb.region set region_name = 'Saint Helena' where region_id = 'SH';
-update imdb.region set region_name = 'Georgia' where region_id = 'GE';
-update imdb.region set region_name = 'Malaysia' where region_id = 'MY';
-update imdb.region set region_name = 'Kazakhstan' where region_id = 'KZ';
-update imdb.region set region_name = 'Brunei Darussalam' where region_id = 'BN';
-update imdb.region set region_name = 'Taiwan' where region_id = 'TW';
-update imdb.region set region_name = 'Samoa' where region_id = 'WS';
-update imdb.region set region_name = 'Belarus' where region_id = 'BY';
-update imdb.region set region_name = 'Western Sahara' where region_id = 'EH';
-update imdb.region set region_name = 'Burkina Faso' where region_id = 'BF';
-update imdb.region set region_name = 'Nigeria' where region_id = 'NG';
-update imdb.region set region_name = 'El Salvador' where region_id = 'SV';
-update imdb.region set region_name = 'Uganda' where region_id = 'UG';
-update imdb.region set region_name = 'Burundi' where region_id = 'BI';
-update imdb.region set region_name = 'Vatican' where region_id = 'VA';
-update imdb.region set region_name = 'Suriname' where region_id = 'SR';
-update imdb.region set region_name = 'Bahrain' where region_id = 'BH';
-update imdb.region set region_name = 'Lithuania' where region_id = 'LT';
-update imdb.region set region_name = 'Panama' where region_id = 'PA';
-update imdb.region set region_name = 'Laos' where region_id = 'LA';
-update imdb.region set region_name = 'Fiji' where region_id = 'FJ';
-update imdb.region set region_name = 'Uzbekistan' where region_id = 'UZ';
-update imdb.region set region_name = 'Serbia' where region_id = 'RS';
-update imdb.region set region_name = 'unknown' where region_id = 'DDDE';
-update imdb.region set region_name = 'Tunisia' where region_id = 'TN';
-update imdb.region set region_name = 'Lebanon' where region_id = 'LB';
-update imdb.region set region_name = 'Guyana' where region_id = 'GY';
-update imdb.region set region_name = 'Philippines' where region_id = 'PH';
-update imdb.region set region_name = 'Kenya' where region_id = 'KE';
-update imdb.region set region_name = 'Guadeloupe' where region_id = 'GP';
-update imdb.region set region_name = 'Congo Democratic Republic' where region_id = 'CD';
-update imdb.region set region_name = 'Antigua and Barbuda' where region_id = 'AG';
-update imdb.region set region_name = 'Malawi' where region_id = 'MW';
-update imdb.region set region_name = 'French Guiana' where region_id = 'GF';
-update imdb.region set region_name = 'Puerto Rico' where region_id = 'PR';
-update imdb.region set region_name = 'Greece' where region_id = 'GR';
-update imdb.region set region_name = 'Brazil' where region_id = 'BR';
-update imdb.region set region_name = 'New Zealand' where region_id = 'NZ';
-update imdb.region set region_name = 'Cameroon' where region_id = 'CM';
-update imdb.region set region_name = 'Togo' where region_id = 'TG';
-update imdb.region set region_name = 'Central African Republic' where region_id = 'CF';
-update imdb.region set region_name = 'Anguilla' where region_id = 'AI';
-update imdb.region set region_name = 'San Marino' where region_id = 'SM';
-update imdb.region set region_name = 'unknown' where region_id = 'YUCS';
-update imdb.region set region_name = 'unknown' where region_id = 'CSXX';
-update imdb.region set region_name = 'Turkmenistan' where region_id = 'TM';
-update imdb.region set region_name = 'India' where region_id = 'IN';
-update imdb.region set region_name = 'Paraguay' where region_id = 'PY';
-update imdb.region set region_name = 'Tanzania' where region_id = 'TZ';
-update imdb.region set region_name = 'Libya' where region_id = 'LY';
-update imdb.region set region_name = 'Dominican Republic' where region_id = 'DO';
-update imdb.region set region_name = 'Poland' where region_id = 'PL';
-update imdb.region set region_name = 'Faroe Islands' where region_id = 'FO';
-update imdb.region set region_name = 'Albania' where region_id = 'AL';
-update imdb.region set region_name = 'Iraq' where region_id = 'IQ';
-update imdb.region set region_name = 'unknown' where region_id = 'XEU';
-update imdb.region set region_name = 'Slovakia' where region_id = 'SK';
-update imdb.region set region_name = 'Latvia' where region_id = 'LV';
-update imdb.region set region_name = 'Virgin Islands (U.S.)' where region_id = 'VI';
-update imdb.region set region_name = 'unknown' where region_id = 'XPI';
-update imdb.region set region_name = 'Sweden' where region_id = 'SE';
-update imdb.region set region_name = 'Tonga' where region_id = 'TO';
-update imdb.region set region_name = 'Ukraine' where region_id = 'UA';
-update imdb.region set region_name = 'Bangladesh' where region_id = 'BD';
-update imdb.region set region_name = 'unknown' where region_id = 'AN';
-update imdb.region set region_name = 'Netherlands' where region_id = 'NL';
-update imdb.region set region_name = 'Viet Nam' where region_id = 'VN';
-update imdb.region set region_name = 'Mauritania' where region_id = 'MR';
-update imdb.region set region_name = 'South Africa' where region_id = 'ZA';
-update imdb.region set region_name = 'Lesotho' where region_id = 'LS';
-update imdb.region set region_name = 'Isle of Man' where region_id = 'IM';
-update imdb.region set region_name = 'Ireland' where region_id = 'IE';
-update imdb.region set region_name = 'Maldives' where region_id = 'MV';
-update imdb.region set region_name = 'Estonia' where region_id = 'EE';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'United Kingdom' WHERE `REGION_ID` = 'GB';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Bhutan' WHERE `REGION_ID` = 'BT';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Iran' WHERE `REGION_ID` = 'IR';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Cyprus' WHERE `REGION_ID` = 'CY';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Benin' WHERE `REGION_ID` = 'BJ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Malta' WHERE `REGION_ID` = 'MT';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Bermuda' WHERE `REGION_ID` = 'BM';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Pakistan' WHERE `REGION_ID` = 'PK';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Gambia' WHERE `REGION_ID` = 'GM';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Belize' WHERE `REGION_ID` = 'BZ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'United Arab Emirates' WHERE `REGION_ID` = 'AE';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Madagascar' WHERE `REGION_ID` = 'MG';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Peru' WHERE `REGION_ID` = 'PE';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Moldova' WHERE `REGION_ID` = 'MD';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Slovenia' WHERE `REGION_ID` = 'SI';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'XSA';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Côte d''Ivoire' WHERE `REGION_ID` = 'CI';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Rwanda' WHERE `REGION_ID` = 'RW';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Canada' WHERE `REGION_ID` = 'CA';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Congo' WHERE `REGION_ID` = 'CG';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Bolivia' WHERE `REGION_ID` = 'BO';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Kuwait' WHERE `REGION_ID` = 'KW';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'XWW';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Syrian Arab Republic' WHERE `REGION_ID` = 'SY';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Northern Mariana Islands' WHERE `REGION_ID` = 'MP';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Equatorial Guinea' WHERE `REGION_ID` = 'GQ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Iceland' WHERE `REGION_ID` = 'IS';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Switzerland' WHERE `REGION_ID` = 'CH';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Republic of North Macedonia' WHERE `REGION_ID` = 'MK';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Honduras' WHERE `REGION_ID` = 'HN';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Guam' WHERE `REGION_ID` = 'GU';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'China' WHERE `REGION_ID` = 'CN';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Eswatini' WHERE `REGION_ID` = 'SZ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Comoros' WHERE `REGION_ID` = 'KM';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Palau' WHERE `REGION_ID` = 'PW';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Uruguay' WHERE `REGION_ID` = 'UY';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Morocco' WHERE `REGION_ID` = 'MA';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Senegal' WHERE `REGION_ID` = 'SN';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Croatia' WHERE `REGION_ID` = 'HR';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Argentina' WHERE `REGION_ID` = 'AR';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Niger' WHERE `REGION_ID` = 'NE';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Niue' WHERE `REGION_ID` = 'NU';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Zimbabwe' WHERE `REGION_ID` = 'ZW';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Montserrat' WHERE `REGION_ID` = 'MS';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'United States of America' WHERE `REGION_ID` = 'US';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'XKV';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Vanuatu' WHERE `REGION_ID` = 'VU';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Zambia' WHERE `REGION_ID` = 'ZM';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Cayman Islands' WHERE `REGION_ID` = 'KY';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Macao' WHERE `REGION_ID` = 'MO';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Eritrea' WHERE `REGION_ID` = 'ER';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Marshall Islands' WHERE `REGION_ID` = 'MH';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Thailand' WHERE `REGION_ID` = 'TH';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Sao Tome and Principe' WHERE `REGION_ID` = 'ST';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Gabon' WHERE `REGION_ID` = 'GA';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Austria' WHERE `REGION_ID` = 'AT';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Djibouti' WHERE `REGION_ID` = 'DJ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Germany' WHERE `REGION_ID` = 'DE';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Palestine' WHERE `REGION_ID` = 'PS';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Venezuela' WHERE `REGION_ID` = 'VE';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Finland' WHERE `REGION_ID` = 'FI';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Japan' WHERE `REGION_ID` = 'JP';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'SUHH';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Hong Kong' WHERE `REGION_ID` = 'HK';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Greenland' WHERE `REGION_ID` = 'GL';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Seychelles' WHERE `REGION_ID` = 'SC';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Nepal' WHERE `REGION_ID` = 'NP';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'American Samoa' WHERE `REGION_ID` = 'AS';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Virgin Islands (U.K.)' WHERE `REGION_ID` = 'VG';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'XAU';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Tuvalu' WHERE `REGION_ID` = 'TV';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Guatemala' WHERE `REGION_ID` = 'GT';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'XSI';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Myanmar' WHERE `REGION_ID` = 'MM';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Solomon Islands' WHERE `REGION_ID` = 'SB';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Guinea' WHERE `REGION_ID` = 'GN';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Russian Federation' WHERE `REGION_ID` = 'RU';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Tajikistan' WHERE `REGION_ID` = 'TJ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Algeria' WHERE `REGION_ID` = 'DZ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Cook Islands' WHERE `REGION_ID` = 'CK';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Kiribati' WHERE `REGION_ID` = 'KI';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Indonesia' WHERE `REGION_ID` = 'ID';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'North Korea' WHERE `REGION_ID` = 'KP';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Grenada' WHERE `REGION_ID` = 'GD';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Gibraltar' WHERE `REGION_ID` = 'GI';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Bosnia and Herzegovina' WHERE `REGION_ID` = 'BA';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Cuba' WHERE `REGION_ID` = 'CU';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Sri Lanka' WHERE `REGION_ID` = 'LK';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Wallis and Futuna' WHERE `REGION_ID` = 'WF';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Bahamas' WHERE `REGION_ID` = 'BS';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'XAS';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Liechtenstein' WHERE `REGION_ID` = 'LI';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Cabo Verde' WHERE `REGION_ID` = 'CV';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Timor-Leste' WHERE `REGION_ID` = 'TL';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'XWG';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Kyrgyzstan' WHERE `REGION_ID` = 'KG';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Trinidad and Tobago' WHERE `REGION_ID` = 'TT';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Mozambique' WHERE `REGION_ID` = 'MZ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Saint Vincent and the Grenadines' WHERE `REGION_ID` = 'VC';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Ethiopia' WHERE `REGION_ID` = 'ET';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Bulgaria' WHERE `REGION_ID` = 'BG';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Australia' WHERE `REGION_ID` = 'AU';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Haiti' WHERE `REGION_ID` = 'HT';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Papua New Guinea' WHERE `REGION_ID` = 'PG';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Botswana' WHERE `REGION_ID` = 'BW';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Ecuador' WHERE `REGION_ID` = 'EC';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Monaco' WHERE `REGION_ID` = 'MC';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Guinea-Bissau' WHERE `REGION_ID` = 'GW';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Mali' WHERE `REGION_ID` = 'ML';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'South Korea' WHERE `REGION_ID` = 'KR';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'VDVN';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Oman' WHERE `REGION_ID` = 'OM';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'ZRCD';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Aruba' WHERE `REGION_ID` = 'AW';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'New Caledonia' WHERE `REGION_ID` = 'NC';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Italy' WHERE `REGION_ID` = 'IT';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'CSHH';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Hungary' WHERE `REGION_ID` = 'HU';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Spain' WHERE `REGION_ID` = 'ES';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Israel' WHERE `REGION_ID` = 'IL';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'France' WHERE `REGION_ID` = 'FR';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Namibia' WHERE `REGION_ID` = 'NA';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'XNA';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Somalia' WHERE `REGION_ID` = 'SO';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Chile' WHERE `REGION_ID` = 'CL';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Andorra' WHERE `REGION_ID` = 'AD';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'French Polynesia' WHERE `REGION_ID` = 'PF';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Nicaragua' WHERE `REGION_ID` = 'NI';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Sudan' WHERE `REGION_ID` = 'SD';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Chad' WHERE `REGION_ID` = 'TD';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Barbados' WHERE `REGION_ID` = 'BB';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Portugal' WHERE `REGION_ID` = 'PT';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'BUMM';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Luxembourg' WHERE `REGION_ID` = 'LU';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Singapore' WHERE `REGION_ID` = 'SG';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Mauritius' WHERE `REGION_ID` = 'MU';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Yemen' WHERE `REGION_ID` = 'YE';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Dominica' WHERE `REGION_ID` = 'DM';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Jersey' WHERE `REGION_ID` = 'JE';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Colombia' WHERE `REGION_ID` = 'CO';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Ghana' WHERE `REGION_ID` = 'GH';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'XYU';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Sierra Leone' WHERE `REGION_ID` = 'SL';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Mexico' WHERE `REGION_ID` = 'MX';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'XKO';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Jamaica' WHERE `REGION_ID` = 'JM';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Denmark' WHERE `REGION_ID` = 'DK';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Costa Rica' WHERE `REGION_ID` = 'CR';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Czechia' WHERE `REGION_ID` = 'CZ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Montenegro' WHERE `REGION_ID` = 'ME';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Azerbaijan' WHERE `REGION_ID` = 'AZ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Cambodia' WHERE `REGION_ID` = 'KH';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Armenia' WHERE `REGION_ID` = 'AM';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Martinique' WHERE `REGION_ID` = 'MQ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Réunion' WHERE `REGION_ID` = 'RE';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Norway' WHERE `REGION_ID` = 'NO';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Qatar' WHERE `REGION_ID` = 'QA';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Belgium' WHERE `REGION_ID` = 'BE';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Angola' WHERE `REGION_ID` = 'AO';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Egypt' WHERE `REGION_ID` = 'EG';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Saint Kitts and Nevis' WHERE `REGION_ID` = 'KN';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Nauru' WHERE `REGION_ID` = 'NR';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Liberia' WHERE `REGION_ID` = 'LR';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Romania' WHERE `REGION_ID` = 'RO';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Saudi Arabia' WHERE `REGION_ID` = 'SA';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Antarctica' WHERE `REGION_ID` = 'AQ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Afghanistan' WHERE `REGION_ID` = 'AF';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Turkey' WHERE `REGION_ID` = 'TR';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Mongolia' WHERE `REGION_ID` = 'MN';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Jordan' WHERE `REGION_ID` = 'JO';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Saint Lucia' WHERE `REGION_ID` = 'LC';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Saint Helena' WHERE `REGION_ID` = 'SH';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Georgia' WHERE `REGION_ID` = 'GE';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Malaysia' WHERE `REGION_ID` = 'MY';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Kazakhstan' WHERE `REGION_ID` = 'KZ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Brunei Darussalam' WHERE `REGION_ID` = 'BN';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Taiwan' WHERE `REGION_ID` = 'TW';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Samoa' WHERE `REGION_ID` = 'WS';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Belarus' WHERE `REGION_ID` = 'BY';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Western Sahara' WHERE `REGION_ID` = 'EH';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Burkina Faso' WHERE `REGION_ID` = 'BF';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Nigeria' WHERE `REGION_ID` = 'NG';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'El Salvador' WHERE `REGION_ID` = 'SV';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Uganda' WHERE `REGION_ID` = 'UG';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Burundi' WHERE `REGION_ID` = 'BI';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Vatican' WHERE `REGION_ID` = 'VA';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Suriname' WHERE `REGION_ID` = 'SR';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Bahrain' WHERE `REGION_ID` = 'BH';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Lithuania' WHERE `REGION_ID` = 'LT';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Panama' WHERE `REGION_ID` = 'PA';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Laos' WHERE `REGION_ID` = 'LA';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Fiji' WHERE `REGION_ID` = 'FJ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Uzbekistan' WHERE `REGION_ID` = 'UZ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Serbia' WHERE `REGION_ID` = 'RS';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'DDDE';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Tunisia' WHERE `REGION_ID` = 'TN';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Lebanon' WHERE `REGION_ID` = 'LB';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Guyana' WHERE `REGION_ID` = 'GY';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Philippines' WHERE `REGION_ID` = 'PH';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Kenya' WHERE `REGION_ID` = 'KE';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Guadeloupe' WHERE `REGION_ID` = 'GP';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Congo Democratic Republic' WHERE `REGION_ID` = 'CD';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Antigua and Barbuda' WHERE `REGION_ID` = 'AG';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Malawi' WHERE `REGION_ID` = 'MW';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'French Guiana' WHERE `REGION_ID` = 'GF';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Puerto Rico' WHERE `REGION_ID` = 'PR';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Greece' WHERE `REGION_ID` = 'GR';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Brazil' WHERE `REGION_ID` = 'BR';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'New Zealand' WHERE `REGION_ID` = 'NZ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Cameroon' WHERE `REGION_ID` = 'CM';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Togo' WHERE `REGION_ID` = 'TG';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Central African Republic' WHERE `REGION_ID` = 'CF';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Anguilla' WHERE `REGION_ID` = 'AI';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'San Marino' WHERE `REGION_ID` = 'SM';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'YUCS';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'CSXX';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Turkmenistan' WHERE `REGION_ID` = 'TM';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'India' WHERE `REGION_ID` = 'IN';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Paraguay' WHERE `REGION_ID` = 'PY';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Tanzania' WHERE `REGION_ID` = 'TZ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Libya' WHERE `REGION_ID` = 'LY';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Dominican Republic' WHERE `REGION_ID` = 'DO';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Poland' WHERE `REGION_ID` = 'PL';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Faroe Islands' WHERE `REGION_ID` = 'FO';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Albania' WHERE `REGION_ID` = 'AL';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Iraq' WHERE `REGION_ID` = 'IQ';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'XEU';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Slovakia' WHERE `REGION_ID` = 'SK';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Latvia' WHERE `REGION_ID` = 'LV';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Virgin Islands (U.S.)' WHERE `REGION_ID` = 'VI';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'XPI';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Sweden' WHERE `REGION_ID` = 'SE';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Tonga' WHERE `REGION_ID` = 'TO';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Ukraine' WHERE `REGION_ID` = 'UA';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Bangladesh' WHERE `REGION_ID` = 'BD';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'unknown' WHERE `REGION_ID` = 'AN';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Netherlands' WHERE `REGION_ID` = 'NL';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Viet Nam' WHERE `REGION_ID` = 'VN';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Mauritania' WHERE `REGION_ID` = 'MR';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'South Africa' WHERE `REGION_ID` = 'ZA';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Lesotho' WHERE `REGION_ID` = 'LS';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Isle of Man' WHERE `REGION_ID` = 'IM';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Ireland' WHERE `REGION_ID` = 'IE';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Maldives' WHERE `REGION_ID` = 'MV';
+UPDATE `imdb`.`region` SET `REGION_NAME` = 'Estonia' WHERE `REGION_ID` = 'EE';
 
 -- --------------------------------------------------------------------
 
-use imdb;
+DROP TABLE IF EXISTS `title_principal_raw`;
 
-select 'title_aka_title_type' as tbl, count(*) from title_aka_title_type
-union
-select 'title_principal_raw' as tbl, count(*) from title_principal_raw
-union
-select 'title_principal' as tbl, count(*) from title_principal
-union
-select 'principal_role' as tbl, count(*) from principal_role
-union
-select 'title_genre' as tbl, count(*) from title_genre
-union
-select 'title_aka' as tbl, count(*) from title_aka
-union
-select 'talent_title' as tbl, count(*) from talent_title
-union
-select 'talent_role' as tbl, count(*) from talent_role
-union
-select 'talent' as tbl, count(*) from talent
-union
-select 'title' as tbl, count(*) from title
-union
-select 'title_type' as tbl, count(*) from title_type
-union
-select 'role' as tbl, count(*) from role
-union
-select 'region' as tbl, count(*) from region
-union
-select 'language' as tbl, count(*) from language
-union
-select 'genre' as tbl, count(*) from genre
-union
-select 'content_type' as tbl, count(*) from content_type
-union
-select 'category' as tbl, count(*) from category
-union
-select 'title_episode' as tbl, count(*) from title_episode
+-- --------------------------------------------------------------------
 
-order by 1;
+USE `imdb`;
+
+SELECT 'title_aka_title_type' AS `tbl`, COUNT(*) FROM `title_aka_title_type`
+UNION
+SELECT 'title_principal' AS `tbl`, COUNT(*) FROM `title_principal`
+UNION
+SELECT 'principal_role' AS `tbl`, COUNT(*) FROM `principal_role`
+UNION
+SELECT 'title_genre' AS `tbl`, COUNT(*) FROM `title_genre`
+UNION
+SELECT 'title_aka' AS `tbl`, COUNT(*) FROM `title_aka`
+UNION
+SELECT 'talent_title' AS `tbl`, COUNT(*) FROM `talent_title`
+UNION
+SELECT 'talent_role' AS `tbl`, COUNT(*) FROM `talent_role`
+UNION
+SELECT 'talent' AS `tbl`, COUNT(*) FROM `talent`
+UNION
+SELECT 'title' AS `tbl`, COUNT(*) FROM `title`
+UNION
+SELECT 'title_type' AS `tbl`, COUNT(*) FROM `title_type`
+UNION
+SELECT 'role' AS `tbl`, COUNT(*) FROM `role`
+UNION
+SELECT 'region' AS `tbl`, COUNT(*) FROM `region`
+UNION
+SELECT 'language' AS `tbl`, COUNT(*) FROM `language`
+UNION
+SELECT 'genre' AS `tbl`, COUNT(*) FROM `genre`
+UNION
+SELECT 'content_type' AS `tbl`, COUNT(*) FROM `content_type`
+UNION
+SELECT 'category' AS `tbl`, COUNT(*) FROM `category`
+UNION
+SELECT 'title_episode' AS `tbl`, COUNT(*) FROM `title_episode`
+ORDER BY 1;
