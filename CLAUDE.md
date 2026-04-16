@@ -11,13 +11,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Database (Docker)
 ```bash
 # Start MySQL + phpMyAdmin
-docker-compose -f IMDB/docker-compose.yml up -d
+docker compose -f IMDB/docker-compose.yml up -d
 
 # Stop (keep data)
-docker-compose -f IMDB/docker-compose.yml down
+docker compose -f IMDB/docker-compose.yml down
 
 # Full reset (wipe data)
-docker-compose -f IMDB/docker-compose.yml down -v
+docker compose -f IMDB/docker-compose.yml down -v
 ```
 
 Access:

@@ -1,0 +1,153 @@
+\section{Additional Information on the Relational Model}
+\label{sec:appendix-relational}
+
+\subsection{Modeling Assumptions and Cardinalities}
+
+Table~\ref{tab:erd-assumptions} summarizes the main modeling assumptions and min-max cardinalities used in the \gls{erd}.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Key \gls{erd} assumptions and cardinalities.}
+\label{tab:erd-assumptions}
+\begin{tabularx}{\textwidth}{lX}
+\hline
+\textbf{Element} & \textbf{Assumption / cardinality (min,max)} \\
+\hline
+
+Title - ContentType &
+Each Title has exactly one ContentType: Title (1,1) to ContentType (0,N). \\
+
+Title - Genre (via Title\_Genre) &
+A Title may have zero or more genres and a Genre may classify zero or more titles: Title (0,N) to Genre (0,N). Title\_Genre stores \texttt{order}. \\
+
+Principal (Title, Talent, Category) &
+Each Principal record refers to exactly one Title, one Talent, and one Category. Title (0,N) to Principal (1,1); Talent (0,N) to Principal (1,1); Category (0,N) to Principal (1,1). Principal stores \texttt{order}, \texttt{job}, \texttt{role\_names}. \\
+
+TitleAKA as weak entity &
+TitleAKA is a weak entity identified by Title plus local \texttt{order}. Identifying relationship: Title (0,N) to TitleAKA (1,1). \\
+
+TitleAKA - Language / Region &
+Language and Region links are optional: TitleAKA (0,1) to Language (0,N); TitleAKA (0,1) to Region (0,N). \\
+
+Episode and Series specialization &
+Episode IS-A Title. Series IS-A Title (conceptual). Specialization is partial (not every Title is Episode/Series) and disjoint (Episode and Series do not overlap). \\
+
+Series - Episode &
+Each Episode belongs to exactly one Series: Episode (1,1) to Series (1,N). Season and episode numbers support ordering. \\
+
+Talent - Role (via Talent\_Role) &
+A Talent may have zero or more roles, and a Role may be linked to zero or more talents: Talent (0,N) to Role (0,N). Talent\_Role stores \texttt{order}. \\
+
+\hline
+\end{tabularx}
+\end{table}
+
+\subsection{Attribute Domains} \label{sec:attr-domains}
+The attribute domains are inferred below based on the provided dataset~\cite{northcoder-blog, northcoder-repo} and the information from \gls{imdb}~\cite{imdb-noncommercial}.
+\begin{itemize}
+
+    \item \textbf{Title}
+    \begin{itemize}
+        \item dom(Title.title\_id) = alphanumeric string
+        \item dom(Title.primary\_title) = non-empty string
+        \item dom(Title.original\_title) = non-empty string
+        \item dom(Title.is\_adult) = $\{0,1\}$
+        \item dom(Title.start\_year) = $\mathbb{N} \cup \{null\}$
+        \item dom(Title.end\_year) = $\mathbb{N} \cup \{null\}$
+        \item dom(Title.runtime\_minutes) = $\mathbb{N}^+ \cup \{null\}$
+    \end{itemize}
+    
+    \item \textbf{ContentType}
+    \begin{itemize}
+        \item dom(ContentType.content\_type\_id) = $\mathbb{N}^+$
+        \item dom(ContentType.content\_type\_name) = non-empty string
+    \end{itemize}
+    
+    \item \textbf{Genre}
+    \begin{itemize}
+        \item dom(Genre.genre\_id) = $\mathbb{N}^+$
+        \item dom(Genre.genre\_name) = non-empty string
+    \end{itemize}
+    
+    \item \textbf{Title\_Genre} (weak entity)
+    \begin{itemize}
+        \item dom(Title\_Genre.order) = $\mathbb{N}^+$
+    \end{itemize}
+    
+    \item \textbf{Talent}
+    \begin{itemize}
+        \item dom(Talent.talent\_id) = alphanumeric string
+        \item dom(Talent.talent\_name) = non-empty string
+        \item dom(Talent.birth\_year) = $\mathbb{N} \cup \{null\}$
+        \item dom(Talent.death\_year) = $\mathbb{N} \cup \{null\}$
+    \end{itemize}
+    
+    \item \textbf{Category}
+    \begin{itemize}
+        \item dom(Category.category\_id) = $\mathbb{N}^+$
+        \item dom(Category.category\_name) = non-empty string
+    \end{itemize}
+    
+    \item \textbf{Principal} (weak entity)
+    \begin{itemize}
+        \item dom(Principal.order) = $\mathbb{N}^+$
+        \item dom(Principal.job) = string $\cup \{null\}$
+        \item dom(Principal.role\_name) = string $\cup \{null\}$
+    \end{itemize}
+    
+    \item \textbf{Role}
+    \begin{itemize}
+        \item dom(Role.role\_id) = $\mathbb{N}^+$
+        \item dom(Role.role\_name) = non-empty string
+    \end{itemize}
+    
+    \item \textbf{Talent\_Role} (weak entity)
+    \begin{itemize}
+        \item dom(Talent\_Role.order) = $\mathbb{N}^+$
+    \end{itemize}
+    
+    \item \textbf{TitleAKA} (weak entity)
+    \begin{itemize}
+        \item dom(TitleAKA.order) = $\mathbb{N}^+$
+        \item dom(TitleAKA.aka\_title) = non-empty string
+        \item dom(TitleAKA.additional\_attrs) = string $\cup \{null\}$
+        \item dom(TitleAKA.is\_original\_title) = $\{0,1\}$
+    \end{itemize}
+    
+    \item \textbf{Language}
+    \begin{itemize}
+        \item dom(Language.language\_id) = alphanumeric string (language code)
+        \item dom(Language.language\_name) = string
+    \end{itemize}
+    
+    \item \textbf{Region}
+    \begin{itemize}
+        \item dom(Region.region\_id) = alphanumeric string (region code)
+        \item dom(Region.region\_name) = string
+    \end{itemize}
+    
+    \item \textbf{TitleType}
+    \begin{itemize}
+        \item dom(TitleType.title\_type\_id) = $\mathbb{N}^+$
+        \item dom(TitleType.title\_type\_name) = non-empty string
+    \end{itemize}
+    
+    \item \textbf{TitleAKA\_TitleType} (weak entity)
+    \begin{itemize}
+        \item dom(TitleAKA\_TitleType.order) = $\mathbb{N}^+$
+    \end{itemize}
+    
+    \item \textbf{Episode} (subtype of Title)
+    \begin{itemize}
+        \item dom(Episode.season\_number) = $\mathbb{N}^+ \cup \{null\}$
+        \item dom(Episode.episode\_number) = $\mathbb{N}^+ \cup \{null\}$
+    \end{itemize}
+\end{itemize}
+
+
+\subsection{Description of Non-visible Integrity Constraints} \label{sec:non-visible-constraints}
+\begin{itemize}
+    \item If both \texttt{start\_year} and \texttt{end\_year} are present for a \texttt{Title}, then \texttt{start\_year} $\le$ \texttt{end\_year}.
+    \item If both \texttt{birth\_year} and \texttt{death\_year} are present for a \texttt{Talent}, then \texttt{birth\_year} $\le$ \texttt{death\_year}.
+\end{itemize}

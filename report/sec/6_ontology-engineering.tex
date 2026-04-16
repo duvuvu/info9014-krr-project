@@ -1,0 +1,65 @@
+\section{Ontology Engineering}
+
+
+The project ontology was developed to provide a shared conceptual model for describing audiovisual works and the people involved in them.
+
+\subsection{Scope}
+
+In particular, the ontology is intended to support three main application directions. First, it supports actor connectivity analysis, including Bacon-style path exploration between people connected through shared creative works. Second, it supports cross-dataset enrichment, especially through the alignment of local entities with external resources such as Wikidata~\cite{wikidata}. Third, it supports graph-based exploration of semantically related entities, including films, series, episodes, genres, languages, regions, and persons.
+
+Additionally, the scope of the ontology covers the concepts required to support these use cases, namely audiovisual works, persons, genres, languages, regions, alternative titles, and contextual participation relations.
+
+
+
+
+
+\subsection{Concept Organization}
+
+The ontology is organized around three main components: classes, object properties, and data properties. This separation follows standard ontology design principles and helps maintain a clear distinction between domain entities, relationships between entities, and literal attributes.
+
+The ontology structure is visualized in Figure~\ref{fig:ontology} using WebVOWL \cite{lohmann2014webvowl}, an interactive web-based tool for visualizing OWL ontologies, whose source code is openly available on WebVOWL GitHub repository \cite{webvowl_github}.
+
+\begin{figure}
+    \centering
+    \input{fig/ontology} % << tex file name for the graph 
+    \caption{CineExplorer ontology.}
+    \label{fig:ontology}
+\end{figure} 
+
+\subsubsection{Classes}
+
+Instead of using the database term \texttt{Title}, we introduced the class \texttt{CreativeWork}. This class represents the actual audiovisual work, independent of how it is named in the dataset. This decision helps separate the concept of a work from its textual titles and makes the ontology more general and reusable. It also avoids directly copying the database structure.
+
+
+The class structure of the ontology captures the main entities of the audiovisual domain. At the centre is the class \texttt{CreativeWork}, which is further specialized into \texttt{Film}, \texttt{Series}, and \texttt{Episode}. This hierarchy reflects the different types of works present in the dataset while maintaining a common abstraction. In addition, the ontology includes the class \texttt{Person} to represent individuals involved in productions, as well as \texttt{Genre}, \texttt{Language}, and \texttt{Region} to describe classification and contextual information. The class \texttt{AlternativeTitle} is used to represent localized or variant titles associated with a work.
+
+A key design element is the introduction of the class \texttt{Participation}. This class models the relationship between a person and a creative work while allowing additional contextual information to be represented, such as role, character name, and credit order. This approach avoids reducing participation to a simple binary relation and better reflects the structure of the original data.
+
+\subsubsection{Object Properties}
+
+Object properties are used to connect entities within the ontology. These include relationships such as linking a work to its genres, associating episodes with their corresponding series, and connecting persons to the works in which they participate. For example, properties such as \texttt{hasGenre}, \texttt{hasEpisode}, \texttt{partOfSeries}, \texttt{hasParticipant}, and \texttt{participatesIn} allow navigation across the graph structure.
+
+In several cases, inverse properties were introduced to improve flexibility in querying and traversal. This is particularly useful for graph-based exploration, where it is often necessary to move in both directions between related entities.
+
+\subsubsection{Data Properties}
+
+Data properties are used to associate entities with literal values. These include attributes such as the title of a work, the name of a person, release years, runtime, and numerical identifiers such as season and episode numbers. Additional attributes such as credit order and character names are also represented as data properties. These properties provide descriptive information that complements the structural relationships captured by object properties.
+
+
+\subsection{OWL Profile}
+
+The ontology is implemented in OWL 2 DL~\cite{owl2profiles}, which provides a balance between expressivity and computational tractability. It supports subclass hierarchies, disjointness, inverse properties, and existential restrictions.
+
+
+\subsection{Namespace and Documentation}
+
+A single namespace is used for all ontology elements. Classes and properties are annotated with \texttt{rdfs:label} and \texttt{rdfs:comment} to improve readability. Naming conventions follow standard practice, with UpperCamelCase for classes and lowerCamelCase for properties.
+
+
+\subsection{Implementation}
+
+The ontology was implemented in Turtle~\cite{turtle} and edited using Protégé~\cite{DBLP:journals/aimatters/Musen15}. The resulting \texttt{cineexplorer.ttl} file is the main artifact of this milestone.
+
+\subsection{Encountered Problems}
+
+One of the main challenges encountered when translating the ERD into an OWL ontology was managing the directionality of relationships. In a traditional entity-relationship diagram, a relationship is often drawn in a single direction, whereas cardinality constraints sometimes need to be imposed on the target entity. Faced with this situation, we had two engineering choices to meet the constraints: either the systematic creation of inverse properties, or the use of inverse property expressions directly within class restrictions. We opted for the first option. This approach makes the ontology easier to read and offers better bidirectional usability. Beyond the model's clarity, this choice prepares the ontology for complex graph analyses. The presence of inverse properties is essential for calculating distance metrics, such as the Bacon Number, as it allows for smooth navigation between entities in the graph.
