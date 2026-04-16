@@ -1,16 +1,19 @@
 ##################################################################
-# CineExplorer R2RML Mapping
-# Maps MySQL `imdb` database → CineExplorer OWL 2 ontology
+# CineExplorer R2RML Mapping (finalized for revised ontology v5)
 #
-# Run with r2rml.jar (from tools/r2rml/):
+# Source system : MySQL imdb database
+# Target        : https://example.org/cineexplorer/ontology#
+# Strategy      : stable IMDb-based IRIs + contextual Participation
+#
+# Run with a SQL-capable R2RML engine, for example:
 #   java -jar r2rml.jar mapping.properties
 #
 # mapping.properties example:
 #   connectionURL = jdbc:mysql://localhost:3307/imdb
 #   user          = imdb_user
 #   password      = imdb_pass
-#   mappingFile   = cineexplorer_mapping.ttl
-#   outputFile    = ../output/cineexplorer_kg.ttl
+#   mappingFile   = cineexplorer_mapping_final.ttl
+#   outputFile    = output/cineexplorer_kg.ttl
 #   format        = TURTLE
 ##################################################################
 
@@ -19,34 +22,35 @@
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
-@prefix owl:  <http://www.w3.org/2002/07/owl#> .
 
 ##################################################################
 # IRI strategy
-#   Title   : https://example.org/cineexplorer/title/{TITLE_ID}
-#   Person  : https://example.org/cineexplorer/person/{TALENT_ID}
-#   Genre   : https://example.org/cineexplorer/genre/{GENRE_ID}
-#   Part.   : https://example.org/cineexplorer/participation/{TITLE_ID}/{TALENT_ID}/{ORD}
+#   Title          https://example.org/cineexplorer/title/{TITLE_ID}
+#   Person         https://example.org/cineexplorer/person/{TALENT_ID}
+#   Genre          https://example.org/cineexplorer/genre/{GENRE_ID}
+#   Participation  https://example.org/cineexplorer/participation/{TITLE_ID}/{TALENT_ID}/{ORD}
 #
-# TITLE_ID  = IMDb tconst (e.g. tt0000001)  — stable, opaque, globally recognised
-# TALENT_ID = IMDb nconst (e.g. nm0000001)  — stable, opaque, globally recognised
+# These IRIs are stable because they reuse the source IMDb identifiers.
 ##################################################################
-
 
 ##################################################################
 # 1. FILM
-#    content_type IN (1=short, 2=movie, 3=TV Movie, 6=TV Short,
-#                     8=TV Special, 9=video)
-#    AND title is NOT an episode (not present in title_episode)
 ##################################################################
 
 <#Film>
   a rr:TriplesMap ;
   rr:logicalTable [
     rr:sqlQuery """
-      SELECT t.TITLE_ID, t.PRIMARY_TITLE, t.START_YEAR,
-             t.RUNTIME_MINUTES, t.IS_ADULT
+      SELECT t.TITLE_ID,
+             t.PRIMARY_TITLE,
+             t.ORIGINAL_TITLE,
+             t.START_YEAR,
+             t.END_YEAR,
+             t.RUNTIME_MINUTES,
+             t.IS_ADULT,
+             ct.CONTENT_TYPE_NAME
       FROM title t
+      JOIN content_type ct ON t.CONTENT_TYPE_ID = ct.CONTENT_TYPE_ID
       WHERE t.CONTENT_TYPE_ID IN (1, 2, 3, 6, 8, 9)
         AND NOT EXISTS (
           SELECT 1 FROM title_episode te
@@ -75,24 +79,32 @@
     rr:objectMap [ rr:column "IS_ADULT" ; rr:datatype xsd:boolean ]
   ] ;
   rr:predicateObjectMap [
+    rr:predicate ce:creativeWorkProperties ;
+    rr:objectMap [ rr:template "originalTitle={ORIGINAL_TITLE}; endYear={END_YEAR}; contentType={CONTENT_TYPE_NAME}" ; rr:datatype xsd:string ]
+  ] ;
+  rr:predicateObjectMap [
     rr:predicate rdfs:label ;
     rr:objectMap [ rr:column "PRIMARY_TITLE" ; rr:language "en" ]
   ] .
 
-
 ##################################################################
 # 2. SERIES
-#    content_type IN (4=TV Series, 7=TV MiniSeries)
-#    AND title is NOT an episode
 ##################################################################
 
 <#Series>
   a rr:TriplesMap ;
   rr:logicalTable [
     rr:sqlQuery """
-      SELECT t.TITLE_ID, t.PRIMARY_TITLE, t.START_YEAR,
-             t.RUNTIME_MINUTES, t.IS_ADULT
+      SELECT t.TITLE_ID,
+             t.PRIMARY_TITLE,
+             t.ORIGINAL_TITLE,
+             t.START_YEAR,
+             t.END_YEAR,
+             t.RUNTIME_MINUTES,
+             t.IS_ADULT,
+             ct.CONTENT_TYPE_NAME
       FROM title t
+      JOIN content_type ct ON t.CONTENT_TYPE_ID = ct.CONTENT_TYPE_ID
       WHERE t.CONTENT_TYPE_ID IN (4, 7)
         AND NOT EXISTS (
           SELECT 1 FROM title_episode te
@@ -121,27 +133,32 @@
     rr:objectMap [ rr:column "IS_ADULT" ; rr:datatype xsd:boolean ]
   ] ;
   rr:predicateObjectMap [
+    rr:predicate ce:creativeWorkProperties ;
+    rr:objectMap [ rr:template "originalTitle={ORIGINAL_TITLE}; endYear={END_YEAR}; contentType={CONTENT_TYPE_NAME}" ; rr:datatype xsd:string ]
+  ] ;
+  rr:predicateObjectMap [
     rr:predicate rdfs:label ;
     rr:objectMap [ rr:column "PRIMARY_TITLE" ; rr:language "en" ]
   ] .
 
-
 ##################################################################
 # 3. EPISODE
-#    Titles present in title_episode, joined with title for
-#    data properties. Includes partOfSeries link.
-#    (content_type 5=TV Episode is the common case, but we rely
-#     on title_episode membership rather than content_type to be
-#     robust against inconsistencies in source data.)
 ##################################################################
 
 <#Episode>
   a rr:TriplesMap ;
   rr:logicalTable [
     rr:sqlQuery """
-      SELECT t.TITLE_ID, t.PRIMARY_TITLE, t.START_YEAR,
-             t.RUNTIME_MINUTES, t.IS_ADULT,
-             te.PARENT_TITLE_ID, te.SEASON_NUMBER, te.EPISODE_NUMBER
+      SELECT t.TITLE_ID,
+             t.PRIMARY_TITLE,
+             t.ORIGINAL_TITLE,
+             t.START_YEAR,
+             t.END_YEAR,
+             t.RUNTIME_MINUTES,
+             t.IS_ADULT,
+             te.PARENT_TITLE_ID,
+             te.SEASON_NUMBER,
+             te.EPISODE_NUMBER
       FROM title t
       JOIN title_episode te ON t.TITLE_ID = te.TITLE_ID
       WHERE te.PARENT_TITLE_ID IS NOT NULL
@@ -176,6 +193,10 @@
     rr:objectMap [ rr:column "EPISODE_NUMBER" ; rr:datatype xsd:nonNegativeInteger ]
   ] ;
   rr:predicateObjectMap [
+    rr:predicate ce:episodeProperties ;
+    rr:objectMap [ rr:template "originalTitle={ORIGINAL_TITLE}; endYear={END_YEAR}" ; rr:datatype xsd:string ]
+  ] ;
+  rr:predicateObjectMap [
     rr:predicate ce:partOfSeries ;
     rr:objectMap [
       rr:template "https://example.org/cineexplorer/title/{PARENT_TITLE_ID}" ;
@@ -187,9 +208,26 @@
     rr:objectMap [ rr:column "PRIMARY_TITLE" ; rr:language "en" ]
   ] .
 
+##################################################################
+# 4. SERIES -> HAS EPISODE (inverse traversal-friendly materialization)
+##################################################################
+
+<#SeriesHasEpisode>
+  a rr:TriplesMap ;
+  rr:logicalTable [ rr:tableName "title_episode" ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/title/{PARENT_TITLE_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:hasEpisode ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
 
 ##################################################################
-# 4. GENRE instances
+# 5. GENRE
 ##################################################################
 
 <#Genre>
@@ -208,11 +246,40 @@
     rr:objectMap [ rr:column "GENRE_NAME" ; rr:language "en" ]
   ] .
 
+##################################################################
+# 6. TITLE -> GENRE / GENRE -> TITLE
+##################################################################
+
+<#TitleHasGenre>
+  a rr:TriplesMap ;
+  rr:logicalTable [ rr:tableName "title_genre" ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:hasGenre ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/genre/{GENRE_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
+
+<#GenreOfTitle>
+  a rr:TriplesMap ;
+  rr:logicalTable [ rr:tableName "title_genre" ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/genre/{GENRE_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:isGenreOf ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
 
 ##################################################################
-# 5. PERSON (all talent — base class + data properties)
-#    Person subclass TriplesMaps below add additional rdf:type
-#    triples to the same IRI; R2RML merges them in the output.
+# 7. PERSON
 ##################################################################
 
 <#Person>
@@ -239,11 +306,8 @@
     rr:objectMap [ rr:column "TALENT_NAME" ; rr:language "en" ]
   ] .
 
-
 ##################################################################
-# 6. ACTOR subclass
-#    talent_role.ROLE_NAME IN ('actor', 'actress')
-#    → adds rdf:type ce:Actor to the same Person IRI
+# 8-12. ROLE SUBCLASSES OF PERSON
 ##################################################################
 
 <#Actor>
@@ -261,11 +325,6 @@
     rr:class ce:Actor
   ] .
 
-
-##################################################################
-# 7. DIRECTOR subclass
-##################################################################
-
 <#Director>
   a rr:TriplesMap ;
   rr:logicalTable [
@@ -280,11 +339,6 @@
     rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
     rr:class ce:Director
   ] .
-
-
-##################################################################
-# 8. WRITER subclass
-##################################################################
 
 <#Writer>
   a rr:TriplesMap ;
@@ -301,12 +355,6 @@
     rr:class ce:Writer
   ] .
 
-
-##################################################################
-# 9. COMPOSER subclass
-#    role 'composer' (dedicated score) + 'soundtrack' (music dept)
-##################################################################
-
 <#Composer>
   a rr:TriplesMap ;
   rr:logicalTable [
@@ -321,11 +369,6 @@
     rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
     rr:class ce:Composer
   ] .
-
-
-##################################################################
-# 10. EDITOR subclass
-##################################################################
 
 <#Editor>
   a rr:TriplesMap ;
@@ -342,20 +385,42 @@
     rr:class ce:Editor
   ] .
 
+##################################################################
+# 13. PERSON PROPERTIES (aggregated professions)
+##################################################################
+
+<#PersonProperties>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT tr.TALENT_ID,
+             GROUP_CONCAT(DISTINCT r.ROLE_NAME ORDER BY r.ROLE_NAME SEPARATOR ', ') AS ROLE_LIST
+      FROM talent_role tr
+      JOIN role r ON tr.ROLE_ID = r.ROLE_ID
+      GROUP BY tr.TALENT_ID
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:personProperties ;
+    rr:objectMap [ rr:column "ROLE_LIST" ; rr:datatype xsd:string ]
+  ] .
 
 ##################################################################
-# 11. PARTICIPATION
-#     One node per (TITLE_ID, TALENT_ID, ORD) in title_principal.
-#     Links Person ↔ CreativeWork and carries the credit category.
-#     Character names are added separately in <#CharacterName>.
+# 14. PARTICIPATION
 ##################################################################
 
 <#Participation>
   a rr:TriplesMap ;
   rr:logicalTable [
     rr:sqlQuery """
-      SELECT tp.TITLE_ID, tp.TALENT_ID, tp.ORD,
-             c.CATEGORY_NAME, tp.JOB
+      SELECT tp.TITLE_ID,
+             tp.TALENT_ID,
+             tp.ORD,
+             c.CATEGORY_NAME,
+             tp.JOB
       FROM title_principal tp
       JOIN category c ON tp.CATEGORY_ID = c.CATEGORY_ID
     """
@@ -387,12 +452,26 @@
     rr:objectMap [ rr:column "JOB" ; rr:datatype xsd:string ]
   ] .
 
+##################################################################
+# 15. PERSON -> HAS ROLE (inverse-friendly materialization)
+##################################################################
+
+<#PersonHasRole>
+  a rr:TriplesMap ;
+  rr:logicalTable [ rr:tableName "title_principal" ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:hasRole ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/participation/{TITLE_ID}/{TALENT_ID}/{ORD}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
 
 ##################################################################
-# 12. CHARACTER NAMES
-#     principal_role rows → :characterName on the Participation IRI.
-#     Uses the same IRI template as <#Participation>; R2RML merges
-#     the triples — no duplicate subjects, just additional triples.
+# 16. CHARACTER NAMES -> added to the same Participation IRI
 ##################################################################
 
 <#CharacterName>
@@ -406,28 +485,8 @@
     rr:objectMap [ rr:column "ROLE_NAME" ; rr:datatype xsd:string ]
   ] .
 
-
 ##################################################################
-# 13. TITLE ↔ GENRE  (ce:hasGenre links)
-##################################################################
-
-<#TitleHasGenre>
-  a rr:TriplesMap ;
-  rr:logicalTable [ rr:tableName "title_genre" ] ;
-  rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
-  ] ;
-  rr:predicateObjectMap [
-    rr:predicate ce:hasGenre ;
-    rr:objectMap [
-      rr:template "https://example.org/cineexplorer/genre/{GENRE_ID}" ;
-      rr:termType rr:IRI
-    ]
-  ] .
-
-
-##################################################################
-# 14. KNOWN-FOR  (ce:knownFor links from talent_title)
+# 17. KNOWN FOR
 ##################################################################
 
 <#KnownFor>
@@ -440,6 +499,279 @@
     rr:predicate ce:knownFor ;
     rr:objectMap [
       rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
+
+##################################################################
+# 18. GENERIC PERSON <-> WORK TRAVERSAL PROPERTIES
+##################################################################
+
+<#WorkedFor>
+  a rr:TriplesMap ;
+  rr:logicalTable [ rr:tableName "title_principal" ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:workedFor ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
+
+<#Employed>
+  a rr:TriplesMap ;
+  rr:logicalTable [ rr:tableName "title_principal" ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:employed ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
+
+##################################################################
+# 19. ROLE-SPECIFIC DIRECT LINKS (useful for querying and demo)
+##################################################################
+
+<#ActedIn>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT tp.TITLE_ID, tp.TALENT_ID
+      FROM title_principal tp
+      JOIN category c ON tp.CATEGORY_ID = c.CATEGORY_ID
+      WHERE c.CATEGORY_NAME IN ('actor', 'actress')
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:actedIn ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
+
+<#HasActor>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT tp.TITLE_ID, tp.TALENT_ID
+      FROM title_principal tp
+      JOIN category c ON tp.CATEGORY_ID = c.CATEGORY_ID
+      WHERE c.CATEGORY_NAME IN ('actor', 'actress')
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:hasActor ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
+
+<#Directed>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT tp.TITLE_ID, tp.TALENT_ID
+      FROM title_principal tp
+      JOIN category c ON tp.CATEGORY_ID = c.CATEGORY_ID
+      WHERE c.CATEGORY_NAME = 'director'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:directed ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
+
+<#DirectedBy>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT tp.TITLE_ID, tp.TALENT_ID
+      FROM title_principal tp
+      JOIN category c ON tp.CATEGORY_ID = c.CATEGORY_ID
+      WHERE c.CATEGORY_NAME = 'director'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:directedBy ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
+
+<#Wrote>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT tp.TITLE_ID, tp.TALENT_ID
+      FROM title_principal tp
+      JOIN category c ON tp.CATEGORY_ID = c.CATEGORY_ID
+      WHERE c.CATEGORY_NAME = 'writer'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:wrote ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
+
+<#WrittenBy>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT tp.TITLE_ID, tp.TALENT_ID
+      FROM title_principal tp
+      JOIN category c ON tp.CATEGORY_ID = c.CATEGORY_ID
+      WHERE c.CATEGORY_NAME = 'writer'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:writtenBy ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
+
+<#Edited>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT tp.TITLE_ID, tp.TALENT_ID
+      FROM title_principal tp
+      JOIN category c ON tp.CATEGORY_ID = c.CATEGORY_ID
+      WHERE c.CATEGORY_NAME = 'editor'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:edited ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
+
+<#EditedBy>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT tp.TITLE_ID, tp.TALENT_ID
+      FROM title_principal tp
+      JOIN category c ON tp.CATEGORY_ID = c.CATEGORY_ID
+      WHERE c.CATEGORY_NAME = 'editor'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:editedBy ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
+
+<#ComposedFor>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT tp.TITLE_ID, tp.TALENT_ID
+      FROM title_principal tp
+      JOIN category c ON tp.CATEGORY_ID = c.CATEGORY_ID
+      WHERE c.CATEGORY_NAME = 'composer'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:composedFor ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
+
+<#ComposedBy>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT tp.TITLE_ID, tp.TALENT_ID
+      FROM title_principal tp
+      JOIN category c ON tp.CATEGORY_ID = c.CATEGORY_ID
+      WHERE c.CATEGORY_NAME = 'composer'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:composedBy ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
+
+##################################################################
+# 20. PERSON <-> PERSON COLLABORATION LINKS
+##################################################################
+
+<#WorkedWith>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT tp1.TALENT_ID AS TALENT_ID_1,
+                      tp2.TALENT_ID AS TALENT_ID_2
+      FROM title_principal tp1
+      JOIN title_principal tp2
+        ON tp1.TITLE_ID = tp2.TITLE_ID
+       AND tp1.TALENT_ID <> tp2.TALENT_ID
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/person/{TALENT_ID_1}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:workedWith ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/person/{TALENT_ID_2}" ;
       rr:termType rr:IRI
     ]
   ] .
