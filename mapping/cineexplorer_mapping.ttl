@@ -2,7 +2,7 @@
 # CineExplorer R2RML Mapping
 # Maps MySQL `imdb` database → CineExplorer OWL 2 ontology
 #
-# Run with r2rml.jar (from labsession/lab5/r2rml_and_dependency/):
+# Run with r2rml.jar (from tools/r2rml/):
 #   java -jar r2rml.jar mapping.properties
 #
 # mapping.properties example:

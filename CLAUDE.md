@@ -24,6 +24,13 @@ Access:
 - **phpMyAdmin**: http://localhost:8080 (user: `imdb_user`, pass: `imdb_pass`)
 - **MySQL direct**: port `3307` (root pass: `root`, db: `imdb`)
 
+### R2RML Mapping (Milestone 3)
+```bash
+# Run from project root — requires Docker DB to be running
+java -jar tools/r2rml/r2rml.jar mapping/mapping.properties
+# Output written to output/cineexplorer_kg.ttl
+```
+
 ## Architecture
 
 ### Current State (Milestone 1 complete, Milestone 2 in progress)
@@ -31,22 +38,30 @@ The relational database layer is done. The OWL 2 ontology (`cineexplorer_ontolog
 
 ```
 cineexplorer_ontology.ttl  — OWL 2 ontology in Turtle format (Milestone 2)
+m2_missing_items.md        — Pending M2 items (author annotations + sample individuals)
 IMDB/
   docker-compose.yml     — MySQL 8.0 + phpMyAdmin services
   imdb-schema.sql        — Schema DDL + LOAD DATA INFILE for CSV bulk load
   csv-data/              — Sampled IMDb data (tab-separated, null=\N)
-mapping/                 — R2RML / RML mapping files (Milestone 3, currently empty)
-output/                  — Generated RDF output (Milestone 3, currently empty)
+mapping/
+  cineexplorer_mapping.ttl — R2RML mapping (Milestone 3)
+  mapping.properties       — JDBC connection + paths config for r2rml.jar
+output/                  — Generated RDF output written here after running r2rml.jar
+tools/
+  r2rml/
+    r2rml.jar            — R2RML processor (copied from lab5)
+    dependency/          — JDBC drivers and Jena libs required by r2rml.jar
 docs/
   ERD.drawio / ERD.pdf / figs/ERD.png  — Entity-relationship diagrams
-labsession/              — Lab exercises and solutions (lab0–lab6, linked_data_tutorial)
+labsession/              — Reference only: lab exercises (lab0–lab6, linked_data_tutorial)
 ```
 
 ### Linked Data / Ontology Tooling
 
 - **Protégé** — OWL ontology editing and reasoning (open `cineexplorer_ontology.ttl` directly)
-- **YARRRML / RMLMapper** — recommended for Milestone 3 RML mappings; lab tutorials use the `linked_data_tutorial/docker-compose.yml`
+- **r2rml.jar** — R2RML processor at `tools/r2rml/r2rml.jar`; config in `mapping/mapping.properties`
 - **Apache Jena / Fuseki** or **GraphDB** — SPARQL endpoint for Milestone 4 queries
+- **Brwsr** (`clariah/brwsr`) — Linked Data browser; Docker Compose pattern in `labsession/linked_data_tutorial/`
 - **WIDOCO** — optional HTML documentation generation from the ontology
 
 ### Database Schema (MySQL `imdb`)
