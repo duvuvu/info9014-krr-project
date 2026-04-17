@@ -30,10 +30,47 @@ The Entity-Relationship Diagram (ERD) is shown below.
 </div>
 
 ## Milestone 2
-(TBD)
+Milestone 2 delivers the OWL 2 ontology for CineExplorer in Turtle format.
+
+- Ontology file: `cineexplorer_ontology.ttl`
+- Namespace: `https://example.org/cineexplorer/ontology#`
+- Modeling scope:
+    - Creative works (`Film`, `Series`, `Episode`)
+    - Persons and multi-role specializations (`Actor`, `Director`, `Writer`, `Editor`, `Composer`)
+    - Genre taxonomy and participation reification (`Participation`)
+    - Role-specific contribution links (`actedIn`, `directed`, `wrote`, `edited`, `composedFor`)
+    - Series/episode structure (`hasEpisode`, `partOfSeries`) and genre typing (`hasGenre`)
+
+The ontology includes human-readable labels and comments to support inspection in Protégé and to prepare Milestone 3 mappings.
 
 ## Milestone 3
-(TBD)
+Milestone 3 provides R2RML mappings from the IMDb relational schema to the CineExplorer ontology and generates RDF output.
+
+- Mapping file: `mapping/cineexplorer_mapping.ttl`
+- Mapping properties: `mapping/mapping.properties`
+- Generated RDF output: `output/cineexplorer_kg.ttl`
+
+### Run Milestone 3 Pipeline
+
+1. Start the relational source database:
+
+```bash
+docker compose -f IMDB/docker-compose.yml up -d
+```
+
+2. Execute the R2RML processor from the project root:
+
+```bash
+java -jar tools/r2rml/r2rml.jar mapping/mapping.properties
+```
+
+3. Verify output generation:
+
+```bash
+ls -lh output/cineexplorer_kg.ttl
+```
+
+The mapping uses stable IRIs derived from IMDb identifiers (for example, `tconst` and `nconst`) and materializes key entities and relations such as works, persons, genres, series/episodes, and participation links.
 
 ## Milestone 4
 (TBD)
