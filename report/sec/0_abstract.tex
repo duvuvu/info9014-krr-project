@@ -1,7 +1,11 @@
+% \begin{abstract}
+% This report covers Milestones 2 and 3 of the CineExplorer project. In Milestone 2, we design an ontology that captures the main concepts of the audiovisual domain and their relationships. The ontology is guided by clearly defined competency questions and is implemented in OWL 2 DL, serialized in Turtle syntax, and edited in Protégé. Key design decisions include the introduction of \textit{CreativeWork} as a central abstraction, the use of an explicit \textit{Participation} class to model contextual relations between persons and works, and the systematic use of inverse properties to support graph traversal. In Milestone 3, we annotate the relational database using an R2RML mapping that generates an RDF knowledge graph conforming to the ontology. The mapping covers all major entity types and applies a stable IRI strategy based on IMDb identifiers.
+
+% \end{abstract}
+
+
 \begin{abstract}
-In Milestone 2, we design an ontology that captures the main concepts of the audiovisual domain and their relationships. The ontology is guided by clearly defined competency questions and is implemented in OWL 2 DL using Turtle and Protégé. Key design decisions include the introduction of \texttt{CreativeWork} as a central abstraction and the use of an explicit \texttt{Participation} class to model contextual relations between persons and works. The resulting ontology provides a structured and extensible foundation for the next milestones.
-% Our code is available at this GitHub repository: \href{https://github.com/duvuvu/info9014-krr-project}{https://github.com/duvuvu/info9014-krr-project}.
+This report covers Milestones 2 and 3 of the CineExplorer project. In Milestone 2, an ontology is designed to capture the main concepts of the audiovisual domain and their relationships. The ontology is guided by competency questions and implemented in OWL 2 DL, serialized in Turtle syntax, and edited in Protégé. Key design decisions include the introduction of \texttt{CreativeWork} as a central abstraction, the use of a reified \texttt{Participation} class to represent contextual relations between persons and works, and the use of inverse properties to support graph traversal.
+
+In Milestone 3, the relational database is annotated using an R2RML mapping that generates an RDF knowledge graph conforming to the ontology. The mapping covers the main entity types and applies a stable IRI strategy based on IMDb identifiers.
 \end{abstract}
-
-
-

@@ -1,0 +1,54 @@
+\begin{thebibliography}{1}
+
+\bibitem{r2rml}
+R.~Cyganiak, A.~Das, and J.~Sequeda.
+\newblock {R2RML: RDB to RDF Mapping Language}.
+\newblock \url{https://www.w3.org/TR/r2rml/}, 2012.
+\newblock W3C Recommendation, 27 September 2012.
+
+\bibitem{imdb-terms}
+IMDb.
+\newblock Can i use imdb data in my software?
+\newblock
+  \url{https://help.imdb.com/article/imdb/general-information/can-i-use-imdb-data-in-my-software/G5JTRESSHJBBHTGX}.
+\newblock Accessed: 2026-02-22.
+
+\bibitem{imdb-noncommercial}
+IMDb.
+\newblock Imdb non-commercial datasets.
+\newblock \url{https://developer.imdb.com/non-commercial-datasets/}, 2025.
+\newblock Accessed: 2026-02-26.
+
+\bibitem{lohmann2014webvowl}
+S.~Lohmann, S.~Negru, F.~Haag, and T.~Ertl.
+\newblock Webvowl: Web-based visualization of ontologies.
+\newblock In {\em Proceedings of the 19th International Conference on Knowledge
+  Engineering and Knowledge Management}, 2014.
+
+\bibitem{owl2profiles}
+B.~Motik, B.~C. Grau, I.~Horrocks, Z.~Wu, A.~Fokoue, and C.~Lutz.
+\newblock {OWL 2 Web Ontology Language: Profiles (Second Edition)}.
+\newblock \url{https://www.w3.org/TR/owl2-profiles/}, 2012.
+\newblock W3C Recommendation, 11 December 2012.
+
+\bibitem{northcoder-blog}
+northCoder.
+\newblock Using imdb as a test data set.
+\newblock \url{https://northcoder.com/post/using-imdb-as-test-data-set}, 2019.
+\newblock Accessed: 2026-02-22.
+
+\bibitem{northcoder-repo}
+northCoder repo.
+\newblock Sample imdb data for relational databases. for testing/demo purposes
+  only.
+\newblock \url{https://github.com/northcoder-repo/relational-sample-imdb-data},
+  2019.
+\newblock Accessed: 2026-02-22.
+
+\bibitem{wikidata}
+Wikidata.
+\newblock Wikidata.
+\newblock \url{https://www.wikidata.org}, 2023.
+\newblock Accessed: 2026-03-05.
+
+\end{thebibliography}

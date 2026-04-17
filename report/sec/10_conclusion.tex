@@ -1,3 +1,9 @@
 \section{Conclusion}
 
-This milestone focused on developing an ontology that abstracts the relational dataset into a meaningful semantic model. The ontology serves as the basis for subsequent RDF mapping and knowledge graph exploration.
+This report covered Milestones 2 and 3 of the CineExplorer project.
+
+In Milestone 2, we designed an OWL 2 DL ontology that abstracts the relational IMDb dataset into a meaningful semantic model. The main design decisions were the introduction of \texttt{CreativeWork} as a domain abstraction over the database \texttt{Title} concept, the reification of participation through an explicit \texttt{Participation} class, and the systematic use of inverse properties to support bidirectional graph traversal. The ontology was verified for OWL 2 DL compliance using the HermiT reasoner in Protégé.
+
+In Milestone 3, we produced an R2RML mapping that generates an RDF knowledge graph from the MySQL database. The mapping applies a stable IRI strategy based on IMDb identifiers and covers all major entity types, including films, series, episodes, persons, genres, and participation records. The mapping was executed successfully and the output knowledge graph conforms to the ontology.
+
+The resulting ontology and knowledge graph provide a foundation for further work, including SPARQL querying, external data integration, and graph-based analytics such as Bacon number computation.
