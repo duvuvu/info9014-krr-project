@@ -68,10 +68,6 @@
     rr:objectMap [ rr:column "IS_ADULT" ; rr:datatype xsd:boolean ]
   ] ;
   rr:predicateObjectMap [
-    rr:predicate ce:creativeWorkProperties ;
-    rr:objectMap [ rr:template "originalTitle={ORIGINAL_TITLE}; endYear={END_YEAR}; contentType={CONTENT_TYPE_NAME}" ; rr:datatype xsd:string ]
-  ] ;
-  rr:predicateObjectMap [
     rr:predicate rdfs:label ;
     rr:objectMap [ rr:column "PRIMARY_TITLE" ; rr:language "en" ]
   ] .
@@ -120,10 +116,6 @@
   rr:predicateObjectMap [
     rr:predicate ce:isAdult ;
     rr:objectMap [ rr:column "IS_ADULT" ; rr:datatype xsd:boolean ]
-  ] ;
-  rr:predicateObjectMap [
-    rr:predicate ce:creativeWorkProperties ;
-    rr:objectMap [ rr:template "originalTitle={ORIGINAL_TITLE}; endYear={END_YEAR}; contentType={CONTENT_TYPE_NAME}" ; rr:datatype xsd:string ]
   ] ;
   rr:predicateObjectMap [
     rr:predicate rdfs:label ;
@@ -180,10 +172,6 @@
   rr:predicateObjectMap [
     rr:predicate ce:episodeNumber ;
     rr:objectMap [ rr:column "EPISODE_NUMBER" ; rr:datatype xsd:nonNegativeInteger ]
-  ] ;
-  rr:predicateObjectMap [
-    rr:predicate ce:episodeProperties ;
-    rr:objectMap [ rr:template "originalTitle={ORIGINAL_TITLE}; endYear={END_YEAR}" ; rr:datatype xsd:string ]
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:partOfSeries ;
@@ -376,6 +364,9 @@
 
 ##################################################################
 # 13. PERSON PROPERTIES (aggregated professions)
+# Note: This map uses MySQL-specific GROUP_CONCAT. For PostgreSQL,
+# use STRING_AGG; for Oracle, use LISTAGG. Alternatively, skip this
+# aggregation and derive roles via SPARQL SPARQL property paths.
 ##################################################################
 
 <#PersonProperties>

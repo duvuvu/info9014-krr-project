@@ -296,11 +296,6 @@ xsd:gYear rdf:type rdfs:Datatype .
 #################################################################
 
 :Person rdf:type owl:Class ;
-    rdfs:subClassOf
-        [ rdf:type owl:Restriction ;
-          owl:onProperty :sameAsExternal ;
-          owl:maxCardinality "1"^^xsd:nonNegativeInteger
-        ] ;
     rdfs:comment "A human individual involved in one or more creative works."@en ;
     rdfs:label "Person"@en .
 
@@ -330,16 +325,6 @@ xsd:gYear rdf:type rdfs:Datatype .
     rdfs:label "Writer"@en .
 
 :CreativeWork rdf:type owl:Class ;
-    rdfs:subClassOf
-        [ rdf:type owl:Restriction ;
-          owl:onProperty :hasGenre ;
-          owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
-          owl:onClass :Genre
-        ] ,
-        [ rdf:type owl:Restriction ;
-          owl:onProperty :sameAsExternal ;
-          owl:maxCardinality "1"^^xsd:nonNegativeInteger
-        ] ;
     owl:disjointWith :Genre , :Person , :Participation ;
     rdfs:comment "An audiovisual work represented in CineExplorer, such as a film, series, or episode."@en ;
     rdfs:label "Creative Work"@en .
@@ -350,12 +335,7 @@ xsd:gYear rdf:type rdfs:Datatype .
     rdfs:label "Film"@en .
 
 :Series rdf:type owl:Class ;
-    rdfs:subClassOf :CreativeWork ,
-        [ rdf:type owl:Restriction ;
-          owl:onProperty :hasEpisode ;
-          owl:minQualifiedCardinality "0"^^xsd:nonNegativeInteger ;
-          owl:onClass :Episode
-        ] ;
+    rdfs:subClassOf :CreativeWork ;
     rdfs:comment "A creative work that may contain episodes."@en ;
     rdfs:label "Series"@en .
 
