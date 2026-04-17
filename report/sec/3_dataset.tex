@@ -1,7 +1,0 @@
-\section{Dataset Description}
-
-In this project, the \gls{imdb} non-commercial dataset \cite{imdb-noncommercial} is used as the upstream data source. \gls{imdb} provides a core subset of its data for personal and non-commercial use, intended to be downloaded and stored locally, and subject to \gls{imdb}’s terms and conditions \cite{imdb-noncommercial, imdb-terms}.
-
-For this project, the dataset is provided in a relational form as a sampled, normalized subset derived from the official \gls{imdb} TSV files. The transformation and sampling process follows the approach described by northCoder~\cite{northcoder-blog, northcoder-repo}. The raw \gls{imdb} files are processed and rearranged into a schema closer to third normal form, and a smaller sample is extracted for testing and demonstration. The resulting relational database models titles (movies, series, episodes), talent, credited participation, genres, alternative titles (with language and region metadata), and episode hierarchies, which align with the requirements of our Semantic Movie and Series Explorer application.
-
-We note that the scripts and relational sample packaging are distributed under an open-source license in the referenced repository, while the underlying \gls{imdb} data remains subject to \gls{imdb}’s non-commercial usage conditions \cite{imdb-terms, northcoder-repo}. This data is also made available under the MIT license, which allows for unrestricted use, copying, modification, merging, publishing, distribution, sublicensing, and/or selling of copies of the licensed elements. 
