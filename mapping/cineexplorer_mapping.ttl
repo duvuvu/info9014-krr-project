@@ -1,20 +1,9 @@
 ##################################################################
-# CineExplorer R2RML Mapping (finalized for revised ontology v5)
-#
-# Source system : MySQL imdb database
-# Target        : https://example.org/cineexplorer/ontology#
-# Strategy      : stable IMDb-based IRIs + contextual Participation
+# CineExplorer R2RML Mapping
 #
 # Run with a SQL-capable R2RML engine, for example:
-#   java -jar r2rml.jar mapping.properties
+#   java -cp "r2rml.jar:dependency/*" r2rml.Main mapping.properties
 #
-# mapping.properties example:
-#   connectionURL = jdbc:mysql://localhost:3307/imdb
-#   user          = imdb_user
-#   password      = imdb_pass
-#   mappingFile   = cineexplorer_mapping_final.ttl
-#   outputFile    = output/cineexplorer_kg.ttl
-#   format        = TURTLE
 ##################################################################
 
 @prefix rr:   <http://www.w3.org/ns/r2rml#> .
