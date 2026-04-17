@@ -775,3 +775,71 @@
       rr:termType rr:IRI
     ]
   ] .
+
+
+##################################################################
+# 11. LANGUAGE / REGION ENRICHMENT FROM TITLE_AKA
+##################################################################
+
+<#TitleLanguage>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT ta.TITLE_ID, l.LANGUAGE_NAME
+      FROM title_aka ta
+      JOIN language l ON ta.LANGUAGE_ID = l.LANGUAGE_ID
+      WHERE ta.LANGUAGE_ID IS NOT NULL
+        AND l.LANGUAGE_NAME IS NOT NULL
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:language ;
+    rr:objectMap [ rr:column "LANGUAGE_NAME" ; rr:datatype xsd:string ]
+  ] .
+
+<#TitleRegion>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT ta.TITLE_ID, r.REGION_NAME
+      FROM title_aka ta
+      JOIN region r ON ta.REGION_ID = r.REGION_ID
+      WHERE ta.REGION_ID IS NOT NULL
+        AND r.REGION_NAME IS NOT NULL
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:region ;
+    rr:objectMap [ rr:column "REGION_NAME" ; rr:datatype xsd:string ]
+  ] .
+
+##################################################################
+# 12. ACTOR-SPECIFIC PLAYED RELATION
+##################################################################
+
+<#Played>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT tp.TITLE_ID, tp.TALENT_ID
+      FROM title_principal tp
+      JOIN category c ON tp.CATEGORY_ID = c.CATEGORY_ID
+      WHERE c.CATEGORY_NAME IN ('actor', 'actress')
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:played ;
+    rr:objectMap [
+      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:termType rr:IRI
+    ]
+  ] .
