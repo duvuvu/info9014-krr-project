@@ -5,19 +5,19 @@ Status values: `Waitlist` → `Approved` → `Solved`
 | Task | Description | Status |
 |------|-------------|--------|
 | M4-01 | Deploy Fuseki + Brwsr (Linked Data frontend) + load ontology and KG | Solved |
-| M4-02-Q1 | Films with genres and runtime, ordered by runtime | Solved |
-| M4-02-Q2 | Persons per participation role (aggregate + HAVING) | Solved |
-| M4-02-Q3 | Persons who worked together most (subquery + aggregate) | Solved |
-| M4-02-Q4 | Actors appearing in 3+ genres (subquery + HAVING) | Solved |
-| M4-02-Q5 | Titles with no director credited (negation as failure) | Solved |
-| M4-02-Q6 | Bacon number — shortest path between two actors (property paths) | Solved |
-| M4-02-Q7 | Wikidata federation — enrich persons with external data (SERVICE) | Solved |
-| M4-02-Q8 | Seasons and episodes per series (aggregate) | Solved |
-| M4-02-Q9 | Directors who never acted (MINUS) | Solved |
-| M4-02-Q10 | Titles sharing genre and language with a target (subquery + joins) | Solved |
-| M4-03-A | Non-trivial demonstrator: Bacon number path explorer | Solved |
-| M4-03-B | Non-trivial demonstrator: SHACL validation | Solved |
-| M4-04 | Report §8 Deployment, §9 SPARQL, §10 Demonstrator | Solved |
+| M4-02-Q1 | Films with genres and runtime, ordered by runtime | Waitlist |
+| M4-02-Q2 | Persons per participation role (aggregate + HAVING) | Waitlist |
+| M4-02-Q3 | Persons who worked together most (subquery + aggregate) | Waitlist |
+| M4-02-Q4 | Actors appearing in 3+ genres (subquery + HAVING) | Waitlist |
+| M4-02-Q5 | Titles with no director credited (negation as failure) | Waitlist |
+| M4-02-Q6 | Bacon number — shortest path between two actors (property paths) | Waitlist |
+| M4-02-Q7 | Wikidata federation — enrich persons with external data (SERVICE) | Waitlist |
+| M4-02-Q8 | Seasons and episodes per series (aggregate) | Waitlist |
+| M4-02-Q9 | Directors who never acted (MINUS) | Waitlist |
+| M4-02-Q10 | Titles sharing genre and language with a target (subquery + joins) | Waitlist |
+| M4-03-A | Non-trivial demonstrator: Bacon number path explorer | Waitlist |
+| M4-03-B | Non-trivial demonstrator: SHACL validation | Waitlist |
+| M4-04 | Report §8 Deployment, §9 SPARQL, §10 Demonstrator | Waitlist |
 
 ---
 
