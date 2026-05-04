@@ -1,0 +1,494 @@
+@prefix : <http://cineexplorer.local/ontology#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <http://cineexplorer.local/ontology#> .
+
+<http://cineexplorer.local/ontology> rdf:type owl:Ontology ;
+                                      rdfs:comment ""@en ;
+                                      rdfs:label "CineExplorer Ontology (revised v5)"@en .
+
+#################################################################
+#    Datatypes
+#################################################################
+
+###  http://www.w3.org/2001/XMLSchema#gYear
+xsd:gYear rdf:type rdfs:Datatype .
+
+
+#################################################################
+#    Object Properties
+#################################################################
+
+###  http://cineexplorer.local/ontology#actedIn
+:actedIn rdf:type owl:ObjectProperty ;
+         rdfs:subPropertyOf :workedFor ;
+         owl:inverseOf :hasActor ;
+         rdfs:domain :Actor ;
+         rdfs:range :CreativeWork ;
+         rdfs:comment "Relates an actor to a creative work in which they acted."@en ;
+         rdfs:label "acted in"@en .
+
+
+###  http://cineexplorer.local/ontology#composedBy
+:composedBy rdf:type owl:ObjectProperty ;
+            rdfs:subPropertyOf :employed ;
+            owl:inverseOf :composedFor ;
+            rdfs:domain :CreativeWork ;
+            rdfs:range :Composer ;
+            rdfs:comment "Relates a creative work to one of its composers."@en ;
+            rdfs:label "composed by"@en .
+
+
+###  http://cineexplorer.local/ontology#composedFor
+:composedFor rdf:type owl:ObjectProperty ;
+             rdfs:subPropertyOf :workedFor ;
+             rdfs:domain :Composer ;
+             rdfs:range :CreativeWork ;
+             rdfs:comment "Relates a composer to a creative work for which they composed music."@en ;
+             rdfs:label "composed for"@en .
+
+
+###  http://cineexplorer.local/ontology#directed
+:directed rdf:type owl:ObjectProperty ;
+          rdfs:subPropertyOf :workedFor ;
+          owl:inverseOf :directedBy ;
+          rdfs:domain :Director ;
+          rdfs:range :CreativeWork ;
+          rdfs:comment "Relates a director to a creative work they directed."@en ;
+          rdfs:label "directed"@en .
+
+
+###  http://cineexplorer.local/ontology#directedBy
+:directedBy rdf:type owl:ObjectProperty ;
+            rdfs:subPropertyOf :employed ;
+            rdfs:domain :CreativeWork ;
+            rdfs:range :Director ;
+            rdfs:comment "Relates a creative work to one of its directors."@en ;
+            rdfs:label "directed by"@en .
+
+
+###  http://cineexplorer.local/ontology#edited
+:edited rdf:type owl:ObjectProperty ;
+        rdfs:subPropertyOf :workedFor ;
+        owl:inverseOf :editedBy ;
+        rdfs:domain :Editor ;
+        rdfs:range :CreativeWork ;
+        rdfs:comment "Relates an editor to a creative work they edited."@en ;
+        rdfs:label "edited"@en .
+
+
+###  http://cineexplorer.local/ontology#editedBy
+:editedBy rdf:type owl:ObjectProperty ;
+          rdfs:subPropertyOf :employed ;
+          rdfs:domain :CreativeWork ;
+          rdfs:range :Editor ;
+          rdfs:comment "Relates a creative work to one of its editors."@en ;
+          rdfs:label "edited by"@en .
+
+
+###  http://cineexplorer.local/ontology#employed
+:employed rdf:type owl:ObjectProperty ;
+          owl:inverseOf :workedFor ;
+          rdfs:domain :CreativeWork ;
+          rdfs:range :Person ;
+          rdfs:comment "Top inverse object property relating a creative work to a person who contributed to it."@en ;
+          rdfs:label "employed"@en .
+
+
+###  http://cineexplorer.local/ontology#hasActor
+:hasActor rdf:type owl:ObjectProperty ;
+          rdfs:subPropertyOf :employed ;
+          rdfs:domain :CreativeWork ;
+          rdfs:range :Actor ;
+          rdfs:comment "Relates a creative work to one of its actors."@en ;
+          rdfs:label "has actor"@en .
+
+
+###  http://cineexplorer.local/ontology#hasEpisode
+:hasEpisode rdf:type owl:ObjectProperty ;
+            owl:inverseOf :partOfSeries ;
+            rdfs:domain :Series ;
+            rdfs:range :Episode ;
+            rdfs:comment "Relates a series to one of its episodes."@en ;
+            rdfs:label "has episode"@en .
+
+
+###  http://cineexplorer.local/ontology#hasGenre
+:hasGenre rdf:type owl:ObjectProperty ;
+          owl:inverseOf :isGenreOf ;
+          rdfs:domain :CreativeWork ;
+          rdfs:range :Genre ;
+          rdfs:comment "Relates a creative work to one of its genres."@en ;
+          rdfs:label "has genre"@en .
+
+
+###  http://cineexplorer.local/ontology#hasRole
+:hasRole rdf:type owl:ObjectProperty ;
+         owl:inverseOf :playedBy ;
+         rdfs:domain :Person ;
+         rdfs:range :Participation ;
+         rdfs:comment "Relates a person to one of their participation records or credited roles."@en ;
+         rdfs:label "has role"@en .
+
+
+###  http://cineexplorer.local/ontology#isGenreOf
+:isGenreOf rdf:type owl:ObjectProperty ;
+           rdfs:domain :Genre ;
+           rdfs:range :CreativeWork ;
+           rdfs:comment "Inverse relation of hasGenre."@en ;
+           rdfs:label "is genre of"@en .
+
+
+###  http://cineexplorer.local/ontology#knownFor
+:knownFor rdf:type owl:ObjectProperty ;
+          rdfs:subPropertyOf :workedFor ;
+          rdfs:domain :Person ;
+          rdfs:range :CreativeWork ;
+          rdfs:comment "Relates a person to a creative work they are especially known for."@en ;
+          rdfs:label "known for"@en .
+
+
+###  http://cineexplorer.local/ontology#partOfSeries
+:partOfSeries rdf:type owl:ObjectProperty ,
+                       owl:FunctionalProperty ;
+              rdfs:domain :Episode ;
+              rdfs:range :Series ;
+              rdfs:comment "Relates an episode to the series it belongs to."@en ;
+              rdfs:label "part of series"@en .
+
+
+###  http://cineexplorer.local/ontology#participatesIn
+:participatesIn rdf:type owl:ObjectProperty ;
+                rdfs:domain :Participation ;
+                rdfs:range :CreativeWork ;
+                rdfs:comment "Relates a participation record to the creative work in which that participation occurs."@en ;
+                rdfs:label "participates in"@en .
+
+
+###  http://cineexplorer.local/ontology#played
+:played rdf:type owl:ObjectProperty ;
+        rdfs:subPropertyOf :workedFor ;
+        rdfs:domain :Actor ;
+        rdfs:range :CreativeWork ;
+        rdfs:comment "Relates an actor to a creative work they performed in. This property can be used alongside actedIn when the source data emphasizes performance rather than general acting credit."@en ;
+        rdfs:label "played"@en .
+
+
+###  http://cineexplorer.local/ontology#playedBy
+:playedBy rdf:type owl:ObjectProperty ;
+          rdfs:domain :Participation ;
+          rdfs:range :Person ;
+          rdfs:comment "Relates a participation record to the person associated with that participation."@en ;
+          rdfs:label "played by"@en .
+
+
+###  http://cineexplorer.local/ontology#sameAsExternal
+:sameAsExternal rdf:type owl:ObjectProperty ;
+                rdfs:comment "Relates a local resource to an externally identified equivalent resource, for example in Wikidata."@en ;
+                rdfs:label "same as external"@en .
+
+
+###  http://cineexplorer.local/ontology#workedFor
+:workedFor rdf:type owl:ObjectProperty ;
+           rdfs:domain :Person ;
+           rdfs:range :CreativeWork ;
+           rdfs:comment "Top object property relating a person to a creative work they contributed to."@en ;
+           rdfs:label "worked for"@en .
+
+
+###  http://cineexplorer.local/ontology#workedWith
+:workedWith rdf:type owl:ObjectProperty ,
+                     owl:SymmetricProperty ;
+            rdfs:domain :Person ;
+            rdfs:range :Person ;
+            rdfs:comment "Relates two persons who collaborated on the same creative work. This property is intended mainly as a derived relation for querying and Bacon-style graph exploration."@en ;
+            rdfs:label "worked with"@en .
+
+
+###  http://cineexplorer.local/ontology#writtenBy
+:writtenBy rdf:type owl:ObjectProperty ;
+           rdfs:subPropertyOf :employed ;
+           owl:inverseOf :wrote ;
+           rdfs:domain :CreativeWork ;
+           rdfs:range :Writer ;
+           rdfs:comment "Relates a creative work to one of its writers."@en ;
+           rdfs:label "written by"@en .
+
+
+###  http://cineexplorer.local/ontology#wrote
+:wrote rdf:type owl:ObjectProperty ;
+       rdfs:subPropertyOf :workedFor ;
+       rdfs:domain :Writer ;
+       rdfs:range :CreativeWork ;
+       rdfs:comment "Relates a writer to a creative work they wrote or co-wrote."@en ;
+       rdfs:label "wrote"@en .
+
+
+#################################################################
+#    Data properties
+#################################################################
+
+###  http://cineexplorer.local/ontology#birthYear
+:birthYear rdf:type owl:DatatypeProperty ;
+           rdfs:domain :Person ;
+           rdfs:range xsd:gYear ;
+           rdfs:comment "Birth year of a person, when known."@en ;
+           rdfs:label "birth year"@en .
+
+
+###  http://cineexplorer.local/ontology#characterName
+:characterName rdf:type owl:DatatypeProperty ;
+               rdfs:domain :Participation ;
+               rdfs:range xsd:string ;
+               rdfs:comment "Character name associated with a participation, when applicable."@en ;
+               rdfs:label "character name"@en .
+
+
+###  http://cineexplorer.local/ontology#deathYear
+:deathYear rdf:type owl:DatatypeProperty ;
+           rdfs:domain :Person ;
+           rdfs:range xsd:gYear ;
+           rdfs:comment "Death year of a person, when known."@en ;
+           rdfs:label "death year"@en .
+
+
+###  http://cineexplorer.local/ontology#endYear
+:endYear rdf:type owl:DatatypeProperty ;
+         rdfs:domain :Series ;
+         rdfs:range xsd:gYear ;
+         rdfs:comment "Year in which a series concluded, when known."@en ;
+         rdfs:label "end year"@en .
+
+
+###  http://cineexplorer.local/ontology#episodeNumber
+:episodeNumber rdf:type owl:DatatypeProperty ;
+               rdfs:domain :Episode ;
+               rdfs:range xsd:nonNegativeInteger ;
+               rdfs:comment "Episode number of an episode within a series or season."@en ;
+               rdfs:label "episode number"@en .
+
+
+###  http://cineexplorer.local/ontology#genreName
+:genreName rdf:type owl:DatatypeProperty ;
+           rdfs:domain :Genre ;
+           rdfs:range xsd:string ;
+           rdfs:comment "Name of the genre."@en ;
+           rdfs:label "genre name"@en .
+
+
+###  http://cineexplorer.local/ontology#isAdult
+:isAdult rdf:type owl:DatatypeProperty ;
+         rdfs:domain :CreativeWork ;
+         rdfs:range xsd:boolean ;
+         rdfs:comment "Indicates whether a creative work is marked as adult content."@en ;
+         rdfs:label "is adult"@en .
+
+
+###  http://cineexplorer.local/ontology#language
+:language rdf:type owl:DatatypeProperty ;
+          rdfs:domain :CreativeWork ;
+          rdfs:range xsd:string ;
+          rdfs:comment "Language code or language label associated with a creative work in the source data."@en ;
+          rdfs:label "language"@en .
+
+
+###  http://cineexplorer.local/ontology#originalTitle
+:originalTitle rdf:type owl:DatatypeProperty ;
+               rdfs:domain :CreativeWork ;
+               rdfs:range xsd:string ;
+               rdfs:comment "Original title of a creative work, when different from the primary title."@en ;
+               rdfs:label "original title"@en .
+
+
+###  http://cineexplorer.local/ontology#participationProperties
+:participationProperties rdf:type owl:DatatypeProperty ;
+                         rdfs:domain :Participation ;
+                         rdfs:range xsd:string ;
+                         rdfs:comment "Additional textual properties or notes attached to a participation."@en ;
+                         rdfs:label "participation properties"@en .
+
+
+###  http://cineexplorer.local/ontology#participationRole
+:participationRole rdf:type owl:DatatypeProperty ;
+                   rdfs:domain :Participation ;
+                   rdfs:range xsd:string ;
+                   rdfs:comment "Role associated with a participation, such as actor, director, or writer."@en ;
+                   rdfs:label "participation role"@en .
+
+
+###  http://cineexplorer.local/ontology#personName
+:personName rdf:type owl:DatatypeProperty ;
+            rdfs:domain :Person ;
+            rdfs:range xsd:string ;
+            rdfs:comment "Preferred name of a person."@en ;
+            rdfs:label "person name"@en .
+
+
+###  http://cineexplorer.local/ontology#region
+:region rdf:type owl:DatatypeProperty ;
+        rdfs:domain :CreativeWork ;
+        rdfs:range xsd:string ;
+        rdfs:comment "Region code or region label associated with a creative work in the source data."@en ;
+        rdfs:label "region"@en .
+
+
+###  http://cineexplorer.local/ontology#releaseYear
+:releaseYear rdf:type owl:DatatypeProperty ;
+             rdfs:domain :CreativeWork ;
+             rdfs:range xsd:gYear ;
+             rdfs:comment "Release year of a creative work."@en ;
+             rdfs:label "release year"@en .
+
+
+###  http://cineexplorer.local/ontology#runtimeMinutes
+:runtimeMinutes rdf:type owl:DatatypeProperty ;
+                rdfs:domain :CreativeWork ;
+                rdfs:range xsd:nonNegativeInteger ;
+                rdfs:comment "Runtime of a creative work in minutes."@en ;
+                rdfs:label "runtime in minutes"@en .
+
+
+###  http://cineexplorer.local/ontology#seasonNumber
+:seasonNumber rdf:type owl:DatatypeProperty ;
+              rdfs:domain :Episode ;
+              rdfs:range xsd:nonNegativeInteger ;
+              rdfs:comment "Season number of an episode within its series."@en ;
+              rdfs:label "season number"@en .
+
+
+###  http://cineexplorer.local/ontology#workTitle
+:workTitle rdf:type owl:DatatypeProperty ;
+           rdfs:domain :CreativeWork ;
+           rdfs:range xsd:string ;
+           rdfs:comment "Primary or preferred title of a creative work."@en ;
+           rdfs:label "work title"@en .
+
+
+#################################################################
+#    Classes
+#################################################################
+
+###  http://cineexplorer.local/ontology#Actor
+:Actor rdf:type owl:Class ;
+       rdfs:subClassOf :Person ;
+       rdfs:comment "A person credited as an actor in one or more creative works."@en ;
+       rdfs:label "Actor"@en .
+
+
+###  http://cineexplorer.local/ontology#Composer
+:Composer rdf:type owl:Class ;
+          rdfs:subClassOf :Person ;
+          rdfs:comment "A person credited as a composer in one or more creative works."@en ;
+          rdfs:label "Composer"@en .
+
+
+###  http://cineexplorer.local/ontology#CreativeWork
+:CreativeWork rdf:type owl:Class ;
+              rdfs:subClassOf [ rdf:type owl:Restriction ;
+                                owl:onProperty :sameAsExternal ;
+                                owl:maxCardinality "1"^^xsd:nonNegativeInteger
+                              ] ;
+              owl:disjointWith :Genre ,
+                               :Participation ,
+                               :Person ;
+              rdfs:comment "An audiovisual work represented in CineExplorer, such as a film, series, or episode."@en ;
+              rdfs:label "Creative Work"@en .
+
+
+###  http://cineexplorer.local/ontology#Director
+:Director rdf:type owl:Class ;
+          rdfs:subClassOf :Person ;
+          rdfs:comment "A person credited as a director in one or more creative works."@en ;
+          rdfs:label "Director"@en .
+
+
+###  http://cineexplorer.local/ontology#Editor
+:Editor rdf:type owl:Class ;
+        rdfs:subClassOf :Person ;
+        rdfs:comment "A person credited as an editor in one or more creative works."@en ;
+        rdfs:label "Editor"@en .
+
+
+###  http://cineexplorer.local/ontology#Episode
+:Episode rdf:type owl:Class ;
+         rdfs:subClassOf :CreativeWork ,
+                         [ rdf:type owl:Restriction ;
+                           owl:onProperty :partOfSeries ;
+                           owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                           owl:onClass :Series
+                         ] ;
+         rdfs:comment "A creative work that is an episode of exactly one series."@en ;
+         rdfs:label "Episode"@en .
+
+
+###  http://cineexplorer.local/ontology#Film
+:Film rdf:type owl:Class ;
+      rdfs:subClassOf :CreativeWork ;
+      rdfs:comment "A standalone film or movie."@en ;
+      rdfs:label "Film"@en .
+
+
+###  http://cineexplorer.local/ontology#Genre
+:Genre rdf:type owl:Class ;
+       owl:disjointWith :Participation ;
+       rdfs:comment "A thematic or stylistic category associated with a creative work."@en ;
+       rdfs:label "Genre"@en .
+
+
+###  http://cineexplorer.local/ontology#Participation
+:Participation rdf:type owl:Class ;
+               rdfs:subClassOf [ rdf:type owl:Restriction ;
+                                 owl:onProperty :participatesIn ;
+                                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                 owl:onClass :CreativeWork
+                               ] ,
+                               [ rdf:type owl:Restriction ;
+                                 owl:onProperty :playedBy ;
+                                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
+                                 owl:onClass :Person
+                               ] ;
+               owl:disjointWith :Person ;
+               rdfs:comment "A contextual participation of exactly one person in exactly one creative work, optionally carrying character name, participation role, or other participation metadata."@en ;
+               rdfs:label "Participation"@en .
+
+
+###  http://cineexplorer.local/ontology#Person
+:Person rdf:type owl:Class ;
+        rdfs:subClassOf [ rdf:type owl:Restriction ;
+                          owl:onProperty :sameAsExternal ;
+                          owl:maxCardinality "1"^^xsd:nonNegativeInteger
+                        ] ;
+        rdfs:comment "A human individual involved in one or more creative works."@en ;
+        rdfs:label "Person"@en .
+
+
+###  http://cineexplorer.local/ontology#Series
+:Series rdf:type owl:Class ;
+        rdfs:subClassOf :CreativeWork ;
+        rdfs:comment "A creative work that may contain episodes."@en ;
+        rdfs:label "Series"@en .
+
+
+###  http://cineexplorer.local/ontology#Writer
+:Writer rdf:type owl:Class ;
+        rdfs:subClassOf :Person ;
+        rdfs:comment "A person credited as a writer in one or more creative works."@en ;
+        rdfs:label "Writer"@en .
+
+
+#################################################################
+#    General axioms
+#################################################################
+
+[ rdf:type owl:AllDisjointClasses ;
+  owl:members ( :Episode
+                :Film
+                :Series
+              )
+] .
+
+
+###  Generated by the OWL API (version 4.5.29.2024-05-13T12:11:03Z) https://github.com/owlcs/owlapi

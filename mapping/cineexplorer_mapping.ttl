@@ -7,17 +7,19 @@
 ##################################################################
 
 @prefix rr:   <http://www.w3.org/ns/r2rml#> .
-@prefix ce:   <https://example.org/cineexplorer/ontology#> .
+@prefix ce:   <http://cineexplorer.local/ontology#> .
 @prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 
 ##################################################################
 # IRI strategy
-#   Title          https://example.org/cineexplorer/title/{TITLE_ID}
-#   Person         https://example.org/cineexplorer/person/{TALENT_ID}
-#   Genre          https://example.org/cineexplorer/genre/{GENRE_ID}
-#   Participation  https://example.org/cineexplorer/participation/{TITLE_ID}/{TALENT_ID}/{ORD}
+#   Title          http://cineexplorer.local/data/title/{TITLE_ID}
+#   Person         http://cineexplorer.local/data/person/{TALENT_ID}
+#   Genre          http://cineexplorer.local/data/genre/{GENRE_ID}
+#   Participation  http://cineexplorer.local/data/participation/{TITLE_ID}/{TALENT_ID}/{ORD}
+#
+# Ontology terms  http://cineexplorer.local/ontology#{ClassName}
 #
 # These IRIs are stable because they reuse the source IMDb identifiers.
 ##################################################################
@@ -48,7 +50,7 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+    rr:template "http://cineexplorer.local/data/title/{TITLE_ID}" ;
     rr:class ce:Film
   ] ;
   rr:predicateObjectMap [
@@ -68,8 +70,8 @@
     rr:objectMap [ rr:column "IS_ADULT" ; rr:datatype xsd:boolean ]
   ] ;
   rr:predicateObjectMap [
-    rr:predicate ce:creativeWorkProperties ;
-    rr:objectMap [ rr:template "originalTitle={ORIGINAL_TITLE}; endYear={END_YEAR}; contentType={CONTENT_TYPE_NAME}" ; rr:datatype xsd:string ]
+    rr:predicate ce:originalTitle ;
+    rr:objectMap [ rr:column "ORIGINAL_TITLE" ; rr:datatype xsd:string ]
   ] ;
   rr:predicateObjectMap [
     rr:predicate rdfs:label ;
@@ -102,7 +104,7 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+    rr:template "http://cineexplorer.local/data/title/{TITLE_ID}" ;
     rr:class ce:Series
   ] ;
   rr:predicateObjectMap [
@@ -122,8 +124,12 @@
     rr:objectMap [ rr:column "IS_ADULT" ; rr:datatype xsd:boolean ]
   ] ;
   rr:predicateObjectMap [
-    rr:predicate ce:creativeWorkProperties ;
-    rr:objectMap [ rr:template "originalTitle={ORIGINAL_TITLE}; endYear={END_YEAR}; contentType={CONTENT_TYPE_NAME}" ; rr:datatype xsd:string ]
+    rr:predicate ce:originalTitle ;
+    rr:objectMap [ rr:column "ORIGINAL_TITLE" ; rr:datatype xsd:string ]
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate ce:endYear ;
+    rr:objectMap [ rr:column "END_YEAR" ; rr:datatype xsd:gYear ]
   ] ;
   rr:predicateObjectMap [
     rr:predicate rdfs:label ;
@@ -154,7 +160,7 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+    rr:template "http://cineexplorer.local/data/title/{TITLE_ID}" ;
     rr:class ce:Episode
   ] ;
   rr:predicateObjectMap [
@@ -182,13 +188,13 @@
     rr:objectMap [ rr:column "EPISODE_NUMBER" ; rr:datatype xsd:nonNegativeInteger ]
   ] ;
   rr:predicateObjectMap [
-    rr:predicate ce:episodeProperties ;
-    rr:objectMap [ rr:template "originalTitle={ORIGINAL_TITLE}; endYear={END_YEAR}" ; rr:datatype xsd:string ]
+    rr:predicate ce:originalTitle ;
+    rr:objectMap [ rr:column "ORIGINAL_TITLE" ; rr:datatype xsd:string ]
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:partOfSeries ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/title/{PARENT_TITLE_ID}" ;
+      rr:template "http://cineexplorer.local/data/title/{PARENT_TITLE_ID}" ;
       rr:termType rr:IRI
     ]
   ] ;
@@ -205,12 +211,12 @@
   a rr:TriplesMap ;
   rr:logicalTable [ rr:tableName "title_episode" ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/title/{PARENT_TITLE_ID}"
+    rr:template "http://cineexplorer.local/data/title/{PARENT_TITLE_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:hasEpisode ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:template "http://cineexplorer.local/data/title/{TITLE_ID}" ;
       rr:termType rr:IRI
     ]
   ] .
@@ -223,7 +229,7 @@
   a rr:TriplesMap ;
   rr:logicalTable [ rr:tableName "genre" ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/genre/{GENRE_ID}" ;
+    rr:template "http://cineexplorer.local/data/genre/{GENRE_ID}" ;
     rr:class ce:Genre
   ] ;
   rr:predicateObjectMap [
@@ -243,12 +249,12 @@
   a rr:TriplesMap ;
   rr:logicalTable [ rr:tableName "title_genre" ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+    rr:template "http://cineexplorer.local/data/title/{TITLE_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:hasGenre ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/genre/{GENRE_ID}" ;
+      rr:template "http://cineexplorer.local/data/genre/{GENRE_ID}" ;
       rr:termType rr:IRI
     ]
   ] .
@@ -257,12 +263,12 @@
   a rr:TriplesMap ;
   rr:logicalTable [ rr:tableName "title_genre" ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/genre/{GENRE_ID}"
+    rr:template "http://cineexplorer.local/data/genre/{GENRE_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:isGenreOf ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:template "http://cineexplorer.local/data/title/{TITLE_ID}" ;
       rr:termType rr:IRI
     ]
   ] .
@@ -275,7 +281,7 @@
   a rr:TriplesMap ;
   rr:logicalTable [ rr:tableName "talent" ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+    rr:template "http://cineexplorer.local/data/person/{TALENT_ID}" ;
     rr:class ce:Person
   ] ;
   rr:predicateObjectMap [
@@ -310,7 +316,7 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+    rr:template "http://cineexplorer.local/data/person/{TALENT_ID}" ;
     rr:class ce:Actor
   ] .
 
@@ -325,7 +331,7 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+    rr:template "http://cineexplorer.local/data/person/{TALENT_ID}" ;
     rr:class ce:Director
   ] .
 
@@ -340,7 +346,7 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+    rr:template "http://cineexplorer.local/data/person/{TALENT_ID}" ;
     rr:class ce:Writer
   ] .
 
@@ -355,7 +361,7 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+    rr:template "http://cineexplorer.local/data/person/{TALENT_ID}" ;
     rr:class ce:Composer
   ] .
 
@@ -370,31 +376,8 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+    rr:template "http://cineexplorer.local/data/person/{TALENT_ID}" ;
     rr:class ce:Editor
-  ] .
-
-##################################################################
-# 13. PERSON PROPERTIES (aggregated professions)
-##################################################################
-
-<#PersonProperties>
-  a rr:TriplesMap ;
-  rr:logicalTable [
-    rr:sqlQuery """
-      SELECT tr.TALENT_ID,
-             GROUP_CONCAT(DISTINCT r.ROLE_NAME ORDER BY r.ROLE_NAME SEPARATOR ', ') AS ROLE_LIST
-      FROM talent_role tr
-      JOIN role r ON tr.ROLE_ID = r.ROLE_ID
-      GROUP BY tr.TALENT_ID
-    """
-  ] ;
-  rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
-  ] ;
-  rr:predicateObjectMap [
-    rr:predicate ce:personProperties ;
-    rr:objectMap [ rr:column "ROLE_LIST" ; rr:datatype xsd:string ]
   ] .
 
 ##################################################################
@@ -415,20 +398,20 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/participation/{TITLE_ID}/{TALENT_ID}/{ORD}" ;
+    rr:template "http://cineexplorer.local/data/participation/{TITLE_ID}/{TALENT_ID}/{ORD}" ;
     rr:class ce:Participation
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:playedBy ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+      rr:template "http://cineexplorer.local/data/person/{TALENT_ID}" ;
       rr:termType rr:IRI
     ]
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:participatesIn ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:template "http://cineexplorer.local/data/title/{TITLE_ID}" ;
       rr:termType rr:IRI
     ]
   ] ;
@@ -439,6 +422,13 @@
   rr:predicateObjectMap [
     rr:predicate ce:participationProperties ;
     rr:objectMap [ rr:column "JOB" ; rr:datatype xsd:string ]
+  ] ;
+  rr:predicateObjectMap [
+    rr:predicate rdfs:label ;
+    rr:objectMap [
+      rr:template "{CATEGORY_NAME} of {TALENT_ID} in {TITLE_ID}" ;
+      rr:language "en"
+    ]
   ] .
 
 ##################################################################
@@ -449,12 +439,12 @@
   a rr:TriplesMap ;
   rr:logicalTable [ rr:tableName "title_principal" ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+    rr:template "http://cineexplorer.local/data/person/{TALENT_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:hasRole ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/participation/{TITLE_ID}/{TALENT_ID}/{ORD}" ;
+      rr:template "http://cineexplorer.local/data/participation/{TITLE_ID}/{TALENT_ID}/{ORD}" ;
       rr:termType rr:IRI
     ]
   ] .
@@ -467,7 +457,7 @@
   a rr:TriplesMap ;
   rr:logicalTable [ rr:tableName "principal_role" ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/participation/{TITLE_ID}/{TALENT_ID}/{ORD}"
+    rr:template "http://cineexplorer.local/data/participation/{TITLE_ID}/{TALENT_ID}/{ORD}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:characterName ;
@@ -482,12 +472,12 @@
   a rr:TriplesMap ;
   rr:logicalTable [ rr:tableName "talent_title" ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+    rr:template "http://cineexplorer.local/data/person/{TALENT_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:knownFor ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:template "http://cineexplorer.local/data/title/{TITLE_ID}" ;
       rr:termType rr:IRI
     ]
   ] .
@@ -500,12 +490,12 @@
   a rr:TriplesMap ;
   rr:logicalTable [ rr:tableName "title_principal" ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+    rr:template "http://cineexplorer.local/data/person/{TALENT_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:workedFor ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:template "http://cineexplorer.local/data/title/{TITLE_ID}" ;
       rr:termType rr:IRI
     ]
   ] .
@@ -514,12 +504,12 @@
   a rr:TriplesMap ;
   rr:logicalTable [ rr:tableName "title_principal" ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+    rr:template "http://cineexplorer.local/data/title/{TITLE_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:employed ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+      rr:template "http://cineexplorer.local/data/person/{TALENT_ID}" ;
       rr:termType rr:IRI
     ]
   ] .
@@ -539,12 +529,12 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+    rr:template "http://cineexplorer.local/data/person/{TALENT_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:actedIn ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:template "http://cineexplorer.local/data/title/{TITLE_ID}" ;
       rr:termType rr:IRI
     ]
   ] .
@@ -560,12 +550,12 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+    rr:template "http://cineexplorer.local/data/title/{TITLE_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:hasActor ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+      rr:template "http://cineexplorer.local/data/person/{TALENT_ID}" ;
       rr:termType rr:IRI
     ]
   ] .
@@ -581,12 +571,12 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+    rr:template "http://cineexplorer.local/data/person/{TALENT_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:directed ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:template "http://cineexplorer.local/data/title/{TITLE_ID}" ;
       rr:termType rr:IRI
     ]
   ] .
@@ -602,12 +592,12 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+    rr:template "http://cineexplorer.local/data/title/{TITLE_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:directedBy ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+      rr:template "http://cineexplorer.local/data/person/{TALENT_ID}" ;
       rr:termType rr:IRI
     ]
   ] .
@@ -623,12 +613,12 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+    rr:template "http://cineexplorer.local/data/person/{TALENT_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:wrote ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:template "http://cineexplorer.local/data/title/{TITLE_ID}" ;
       rr:termType rr:IRI
     ]
   ] .
@@ -644,12 +634,12 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+    rr:template "http://cineexplorer.local/data/title/{TITLE_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:writtenBy ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+      rr:template "http://cineexplorer.local/data/person/{TALENT_ID}" ;
       rr:termType rr:IRI
     ]
   ] .
@@ -665,12 +655,12 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+    rr:template "http://cineexplorer.local/data/person/{TALENT_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:edited ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:template "http://cineexplorer.local/data/title/{TITLE_ID}" ;
       rr:termType rr:IRI
     ]
   ] .
@@ -686,12 +676,12 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+    rr:template "http://cineexplorer.local/data/title/{TITLE_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:editedBy ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+      rr:template "http://cineexplorer.local/data/person/{TALENT_ID}" ;
       rr:termType rr:IRI
     ]
   ] .
@@ -707,12 +697,12 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+    rr:template "http://cineexplorer.local/data/person/{TALENT_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:composedFor ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:template "http://cineexplorer.local/data/title/{TITLE_ID}" ;
       rr:termType rr:IRI
     ]
   ] .
@@ -728,43 +718,15 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+    rr:template "http://cineexplorer.local/data/title/{TITLE_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:composedBy ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/person/{TALENT_ID}" ;
+      rr:template "http://cineexplorer.local/data/person/{TALENT_ID}" ;
       rr:termType rr:IRI
     ]
   ] .
-
-##################################################################
-# 20. PERSON <-> PERSON COLLABORATION LINKS
-##################################################################
-
-<#WorkedWith>
-  a rr:TriplesMap ;
-  rr:logicalTable [
-    rr:sqlQuery """
-      SELECT DISTINCT tp1.TALENT_ID AS TALENT_ID_1,
-                      tp2.TALENT_ID AS TALENT_ID_2
-      FROM title_principal tp1
-      JOIN title_principal tp2
-        ON tp1.TITLE_ID = tp2.TITLE_ID
-       AND tp1.TALENT_ID <> tp2.TALENT_ID
-    """
-  ] ;
-  rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID_1}"
-  ] ;
-  rr:predicateObjectMap [
-    rr:predicate ce:workedWith ;
-    rr:objectMap [
-      rr:template "https://example.org/cineexplorer/person/{TALENT_ID_2}" ;
-      rr:termType rr:IRI
-    ]
-  ] .
-
 
 ##################################################################
 # 11. LANGUAGE / REGION ENRICHMENT FROM TITLE_AKA
@@ -774,38 +736,34 @@
   a rr:TriplesMap ;
   rr:logicalTable [
     rr:sqlQuery """
-      SELECT DISTINCT ta.TITLE_ID, l.LANGUAGE_NAME
+      SELECT DISTINCT ta.TITLE_ID, ta.LANGUAGE_ID
       FROM title_aka ta
-      JOIN language l ON ta.LANGUAGE_ID = l.LANGUAGE_ID
       WHERE ta.LANGUAGE_ID IS NOT NULL
-        AND l.LANGUAGE_NAME IS NOT NULL
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+    rr:template "http://cineexplorer.local/data/title/{TITLE_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:language ;
-    rr:objectMap [ rr:column "LANGUAGE_NAME" ; rr:datatype xsd:string ]
+    rr:objectMap [ rr:column "LANGUAGE_ID" ; rr:datatype xsd:string ]
   ] .
 
 <#TitleRegion>
   a rr:TriplesMap ;
   rr:logicalTable [
     rr:sqlQuery """
-      SELECT DISTINCT ta.TITLE_ID, r.REGION_NAME
+      SELECT DISTINCT ta.TITLE_ID, ta.REGION_ID
       FROM title_aka ta
-      JOIN region r ON ta.REGION_ID = r.REGION_ID
       WHERE ta.REGION_ID IS NOT NULL
-        AND r.REGION_NAME IS NOT NULL
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/title/{TITLE_ID}"
+    rr:template "http://cineexplorer.local/data/title/{TITLE_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:region ;
-    rr:objectMap [ rr:column "REGION_NAME" ; rr:datatype xsd:string ]
+    rr:objectMap [ rr:column "REGION_ID" ; rr:datatype xsd:string ]
   ] .
 
 ##################################################################
@@ -823,12 +781,12 @@
     """
   ] ;
   rr:subjectMap [
-    rr:template "https://example.org/cineexplorer/person/{TALENT_ID}"
+    rr:template "http://cineexplorer.local/data/person/{TALENT_ID}"
   ] ;
   rr:predicateObjectMap [
     rr:predicate ce:played ;
     rr:objectMap [
-      rr:template "https://example.org/cineexplorer/title/{TITLE_ID}" ;
+      rr:template "http://cineexplorer.local/data/title/{TITLE_ID}" ;
       rr:termType rr:IRI
     ]
   ] .

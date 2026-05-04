@@ -1,0 +1,15 @@
+PREFIX ce: <http://cineexplorer.local/ontology#>
+
+# Q5: Films and series that have no director credited in the knowledge graph
+# Techniques: UNION, FILTER NOT EXISTS (negation as failure)
+SELECT ?title ?type
+WHERE {
+  { ?work a ce:Film .   BIND("Film"   AS ?type) }
+  UNION
+  { ?work a ce:Series . BIND("Series" AS ?type) }
+  ?work ce:workTitle ?title .
+  FILTER NOT EXISTS {
+    ?person ce:directed ?work .
+  }
+}
+ORDER BY ?type ?title

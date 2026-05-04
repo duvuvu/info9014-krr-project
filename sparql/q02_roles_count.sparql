@@ -1,0 +1,13 @@
+PREFIX ce: <http://cineexplorer.local/ontology#>
+
+# Q2: Number of distinct persons per participation role (roles with > 5 persons)
+# Techniques: COUNT DISTINCT, GROUP BY, HAVING, ORDER BY
+SELECT ?role (COUNT(DISTINCT ?person) AS ?personCount)
+WHERE {
+  ?par a ce:Participation ;
+       ce:participationRole ?role ;
+       ce:playedBy ?person .
+}
+GROUP BY ?role
+HAVING (COUNT(DISTINCT ?person) > 5)
+ORDER BY DESC(?personCount)

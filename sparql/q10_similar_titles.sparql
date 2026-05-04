@@ -1,0 +1,26 @@
+PREFIX ce: <http://cineexplorer.local/ontology#>
+
+# Q10: Titles sharing genre AND language with Les Misérables, ranked by shared genres
+# Techniques: subquery (language filter), outer join (genre filter), COUNT DISTINCT, GROUP BY
+# Target: Les Misérables (tt1707386) — 3 genres, 7 languages
+SELECT ?candidateTitle (COUNT(DISTINCT ?sharedGenre) AS ?commonGenres)
+WHERE {
+  BIND(<http://cineexplorer.local/data/title/tt1707386> AS ?target)
+
+  # Candidate must share at least one genre with target
+  ?target ce:hasGenre ?sharedGenre .
+  ?candidate ce:hasGenre ?sharedGenre .
+  FILTER(?candidate != ?target)
+  ?candidate ce:workTitle ?candidateTitle .
+
+  # Candidate must also share at least one language with target (subquery)
+  {
+    SELECT DISTINCT ?candidate WHERE {
+      BIND(<http://cineexplorer.local/data/title/tt1707386> AS ?target)
+      ?target ce:language ?lang .
+      ?candidate ce:language ?lang .
+    }
+  }
+}
+GROUP BY ?candidate ?candidateTitle
+ORDER BY DESC(?commonGenres)

@@ -1,0 +1,61 @@
+@prefix sh:  <http://www.w3.org/ns/shacl#> .
+@prefix ce:  <http://cineexplorer.local/ontology#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+
+# Shape 1: Every CreativeWork must have exactly one workTitle (xsd:string)
+ce:CreativeWorkShape a sh:NodeShape ;
+  sh:targetClass ce:CreativeWork ;
+  sh:property [
+    sh:path     ce:workTitle ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:datatype xsd:string ;
+    sh:message  "Every CreativeWork must have exactly one workTitle of type xsd:string."
+  ] .
+
+# Shape 2: Every Person must have at least one personName (xsd:string)
+ce:PersonShape a sh:NodeShape ;
+  sh:targetClass ce:Person ;
+  sh:property [
+    sh:path     ce:personName ;
+    sh:minCount 1 ;
+    sh:datatype xsd:string ;
+    sh:message  "Every Person must have at least one personName of type xsd:string."
+  ] .
+
+# Shape 3: Every Episode must link to exactly one Series via ce:partOfSeries
+ce:EpisodeShape a sh:NodeShape ;
+  sh:targetClass ce:Episode ;
+  sh:property [
+    sh:path     ce:partOfSeries ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class    ce:Series ;
+    sh:message  "Every Episode must be linked to exactly one Series via ce:partOfSeries."
+  ] .
+
+# Shape 4: Every Participation must link to exactly one Person, one CreativeWork,
+#           and have at least one participationRole string
+ce:ParticipationShape a sh:NodeShape ;
+  sh:targetClass ce:Participation ;
+  sh:property [
+    sh:path     ce:playedBy ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class    ce:Person ;
+    sh:message  "Every Participation must link to exactly one Person via ce:playedBy."
+  ] ;
+  sh:property [
+    sh:path     ce:participatesIn ;
+    sh:minCount 1 ;
+    sh:maxCount 1 ;
+    sh:class    ce:CreativeWork ;
+    sh:message  "Every Participation must link to exactly one CreativeWork via ce:participatesIn."
+  ] ;
+  sh:property [
+    sh:path     ce:participationRole ;
+    sh:minCount 1 ;
+    sh:datatype xsd:string ;
+    sh:message  "Every Participation must have at least one participationRole string."
+  ] .
