@@ -8,7 +8,7 @@
 
 <http://cineexplorer.local/ontology> rdf:type owl:Ontology ;
                                       rdfs:comment ""@en ;
-                                      rdfs:label "CineExplorer Ontology (revised v5)"@en .
+                                      rdfs:label "CineExplorer Ontology (OWL 2 QL)"@en .
 
 #################################################################
 #    Datatypes
@@ -152,11 +152,10 @@ xsd:gYear rdf:type rdfs:Datatype .
 
 
 ###  http://cineexplorer.local/ontology#partOfSeries
-:partOfSeries rdf:type owl:ObjectProperty ,
-                       owl:FunctionalProperty ;
+:partOfSeries rdf:type owl:ObjectProperty ;
               rdfs:domain :Episode ;
               rdfs:range :Series ;
-              rdfs:comment "Relates an episode to the series it belongs to."@en ;
+              rdfs:comment "Relates an episode to the series it belongs to. The 'exactly one Series per Episode' constraint is enforced by the SHACL EpisodeShape."@en ;
               rdfs:label "part of series"@en .
 
 
@@ -402,10 +401,6 @@ xsd:gYear rdf:type rdfs:Datatype .
 
 ###  http://cineexplorer.local/ontology#CreativeWork
 :CreativeWork rdf:type owl:Class ;
-              rdfs:subClassOf [ rdf:type owl:Restriction ;
-                                owl:onProperty :sameAsExternal ;
-                                owl:maxCardinality "1"^^xsd:nonNegativeInteger
-                              ] ;
               owl:disjointWith :Genre ,
                                :Participation ,
                                :Person ;
@@ -429,13 +424,8 @@ xsd:gYear rdf:type rdfs:Datatype .
 
 ###  http://cineexplorer.local/ontology#Episode
 :Episode rdf:type owl:Class ;
-         rdfs:subClassOf :CreativeWork ,
-                         [ rdf:type owl:Restriction ;
-                           owl:onProperty :partOfSeries ;
-                           owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                           owl:onClass :Series
-                         ] ;
-         rdfs:comment "A creative work that is an episode of exactly one series."@en ;
+         rdfs:subClassOf :CreativeWork ;
+         rdfs:comment "A creative work that is an episode of a series. The 'exactly one Series' cardinality is enforced by the SHACL EpisodeShape."@en ;
          rdfs:label "Episode"@en .
 
 
@@ -455,27 +445,13 @@ xsd:gYear rdf:type rdfs:Datatype .
 
 ###  http://cineexplorer.local/ontology#Participation
 :Participation rdf:type owl:Class ;
-               rdfs:subClassOf [ rdf:type owl:Restriction ;
-                                 owl:onProperty :participatesIn ;
-                                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                 owl:onClass :CreativeWork
-                               ] ,
-                               [ rdf:type owl:Restriction ;
-                                 owl:onProperty :playedBy ;
-                                 owl:qualifiedCardinality "1"^^xsd:nonNegativeInteger ;
-                                 owl:onClass :Person
-                               ] ;
                owl:disjointWith :Person ;
-               rdfs:comment "A contextual participation of exactly one person in exactly one creative work, optionally carrying character name, participation role, or other participation metadata."@en ;
+               rdfs:comment "A contextual participation of a person in a creative work, optionally carrying character name, participation role, or other participation metadata. The 'exactly one Person and one CreativeWork' cardinalities are enforced by the SHACL ParticipationShape."@en ;
                rdfs:label "Participation"@en .
 
 
 ###  http://cineexplorer.local/ontology#Person
 :Person rdf:type owl:Class ;
-        rdfs:subClassOf [ rdf:type owl:Restriction ;
-                          owl:onProperty :sameAsExternal ;
-                          owl:maxCardinality "1"^^xsd:nonNegativeInteger
-                        ] ;
         rdfs:comment "A human individual involved in one or more creative works."@en ;
         rdfs:label "Person"@en .
 

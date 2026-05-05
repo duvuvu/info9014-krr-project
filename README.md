@@ -7,7 +7,7 @@
 
 ## Overview
 
-CineExplorer is a knowledge graph platform built on top of a sampled IMDb relational dataset. It integrates a formal OWL 2 DL ontology, an R2RML mapping to generate RDF triples, and a SPARQL-queryable triplestore. The platform supports actor connectivity analysis (Bacon-number paths), Wikidata federation for entity enrichment, and graph-driven exploration of films, series, persons, and genres.
+CineExplorer is a knowledge graph platform built on top of a sampled IMDb relational dataset. It integrates a formal OWL 2 QL ontology (with cardinality validation handled by SHACL shapes), an R2RML mapping to generate RDF triples, and a SPARQL-queryable triplestore. The platform supports actor connectivity analysis (Bacon-number paths), Wikidata federation for entity enrichment, and graph-driven exploration of films, series, persons, and genres.
 
 ---
 
@@ -22,7 +22,7 @@ info9014-krr-project/
 │   ├── sources/                 #   16 TSV source files (IMDb non-commercial sample)
 │   └── README.md
 │
-├── ontology/                    # M2 — OWL 2 DL ontology
+├── ontology/                    # M2 — OWL 2 QL ontology
 │   └── cineexplorer_ontology.ttl
 │
 ├── mapping/                     # M3 — R2RML mapping
@@ -104,7 +104,7 @@ for cls in ['Film','Series','Episode','Person','Genre','Participation']:
 
 - **Namespace:** `http://cineexplorer.local/ontology#` (prefix `ce:`)
 - **Instance IRIs:** `http://cineexplorer.local/data/{title|person|genre|participation}/{id}`
-- **Profile:** OWL 2 DL — verified with HermiT reasoner in Protégé 5.6.9
+- **Profile:** OWL 2 QL — confirmed with Protégé's OWL Profile Checker; consistency verified with HermiT reasoner in Protégé 5.6.9
 - **Key classes:** `CreativeWork` → {`Film`, `Series`, `Episode`} (disjoint); `Person` → {`Actor`, `Director`, `Writer`, `Editor`, `Composer`}; `Genre`; `Participation`
 
 ---
