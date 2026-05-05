@@ -62,7 +62,7 @@ volumes:
 # ── Note ──────────────────────────────────────────────────────
 # Separate from database/docker-compose.yml (MySQL port 3307).
 # MySQL is needed only when running the R2RML mapping.
-# Fuseki + Brwsr are needed for SPARQL querying and LD browsing (M4).
+# Fuseki + Brwsr are needed for SPARQL querying and Linked Data browsing.
 #
 # On Linux, extra_hosts: host.docker.internal:host-gateway ensures
 # the Brwsr container can reach Fuseki on the Docker host.

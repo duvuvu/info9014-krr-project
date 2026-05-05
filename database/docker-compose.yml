@@ -13,10 +13,9 @@ services:
     ports:
       - "3307:3306"
     volumes:
-      - ./imdb-schema.sql:/docker-entrypoint-initdb.d/imdb-schema.sql
-      - ./csv-data:/var/lib/mysql-files
+      - ./sources/imdb-official/filtered:/var/lib/mysql-files
       - mysql_data:/var/lib/mysql
-    command: --secure-file-priv=/var/lib/mysql-files
+    command: --secure-file-priv=/var/lib/mysql-files --local-infile=1
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
       interval: 10s

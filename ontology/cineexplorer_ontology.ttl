@@ -168,15 +168,6 @@ xsd:gYear rdf:type rdfs:Datatype .
                 rdfs:label "participates in"@en .
 
 
-###  http://cineexplorer.local/ontology#played
-:played rdf:type owl:ObjectProperty ;
-        rdfs:subPropertyOf :workedFor ;
-        rdfs:domain :Actor ;
-        rdfs:range :CreativeWork ;
-        rdfs:comment "Relates an actor to a creative work they performed in. This property can be used alongside actedIn when the source data emphasizes performance rather than general acting credit."@en ;
-        rdfs:label "played"@en .
-
-
 ###  http://cineexplorer.local/ontology#playedBy
 :playedBy rdf:type owl:ObjectProperty ;
           rdfs:domain :Participation ;
@@ -231,6 +222,14 @@ xsd:gYear rdf:type rdfs:Datatype .
 #    Data properties
 #################################################################
 
+###  http://cineexplorer.local/ontology#averageRating
+:averageRating rdf:type owl:DatatypeProperty ;
+               rdfs:domain :CreativeWork ;
+               rdfs:range xsd:decimal ;
+               rdfs:comment "Weighted average of user ratings for a creative work, on a 1.0-10.0 scale (IMDb numVotes-weighted average). Sourced from title.ratings.averageRating."@en ;
+               rdfs:label "average rating"@en .
+
+
 ###  http://cineexplorer.local/ontology#birthYear
 :birthYear rdf:type owl:DatatypeProperty ;
            rdfs:domain :Person ;
@@ -279,6 +278,14 @@ xsd:gYear rdf:type rdfs:Datatype .
            rdfs:label "genre name"@en .
 
 
+###  http://cineexplorer.local/ontology#hasProfession
+:hasProfession rdf:type owl:DatatypeProperty ;
+               rdfs:domain :Person ;
+               rdfs:range xsd:string ;
+               rdfs:comment "Career-level profession of a person, as labelled by IMDb's primaryProfession (e.g., 'actor', 'producer', 'cinematographer'). Up to 3 values per person. Distinct from per-credit role on a Participation."@en ;
+               rdfs:label "has profession"@en .
+
+
 ###  http://cineexplorer.local/ontology#isAdult
 :isAdult rdf:type owl:DatatypeProperty ;
          rdfs:domain :CreativeWork ;
@@ -293,6 +300,14 @@ xsd:gYear rdf:type rdfs:Datatype .
           rdfs:range xsd:string ;
           rdfs:comment "Language code or language label associated with a creative work in the source data."@en ;
           rdfs:label "language"@en .
+
+
+###  http://cineexplorer.local/ontology#numVotes
+:numVotes rdf:type owl:DatatypeProperty ;
+          rdfs:domain :CreativeWork ;
+          rdfs:range xsd:nonNegativeInteger ;
+          rdfs:comment "Number of user votes contributing to the average rating. Sourced from title.ratings.numVotes."@en ;
+          rdfs:label "number of votes"@en .
 
 
 ###  http://cineexplorer.local/ontology#originalTitle
