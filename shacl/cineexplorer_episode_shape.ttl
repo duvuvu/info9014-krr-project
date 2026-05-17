@@ -1,0 +1,14 @@
+@prefix sh: <http://www.w3.org/ns/shacl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix ce: <http://cineexplorer.local/ontology#> .
+
+ce:EpisodeShape
+    a sh:NodeShape ;
+    sh:targetClass ce:Episode ;
+    sh:property [
+        sh:path ce:partOfSeries ;
+        sh:minCount 1 ;
+        sh:maxCount 1 ;
+        sh:class ce:Series ;
+        sh:name "Part of series" ;
+    ] .
