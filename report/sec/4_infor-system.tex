@@ -1,0 +1,98 @@
+% \newpage
+\section{Towards an Information System}
+\label{sec:infosystem}
+
+This section presents the conceptual \ac{erd}, the modelling assumptions and cardinalities, the reduction to a relational schema, and the database that materialises it. The schema described here is the migrated CineExplorer schema built directly from the official \ac{imdb} non-commercial dataset (Section~\ref{sec:dataset}). Earlier project milestones used a curated \ac{csv} sample with a coarser schema; that schema is preserved in the repository's archive but is not reused below.
+
+\subsection{Entity-relationship Diagram}
+
+Figure~\ref{fig:erd} illustrates the \ac{erd}. Two strong top-level entity sets (\texttt{Title} and \texttt{Person}) anchor the model, surrounded by six lookup entity sets (\texttt{Title\_Type}, \texttt{Role}, \texttt{Profession}, \texttt{Language}, \texttt{Region}, \texttt{AKA\_Type}) for the bounded label sets used in the source \acp{tsv}. Two weak entity sets (\texttt{Title\_AKA} and \texttt{Principal}) capture relations that carry their own attributes and require an identifying parent. Three IS-A subtypes of \texttt{Title} (\texttt{Film}, \texttt{Series}, \texttt{Episode}) match the three disjoint subclasses of \texttt{ce:CreativeWork} declared in the ontology. A small number of multi-valued attributes (\texttt{Genre} on \texttt{Title}, \texttt{character\_name} on \texttt{Principal}) are reduced to attribute relations rather than promoted to entity sets, because the value sets are small, fully bounded, and the value string is its own complete label. The full reduction yields 16 relations (Appendix~\ref{sec:appendix-relational}).
+
+\begin{sloppypar}
+\paragraph{A note on naming.} \texttt{Principal} is named after \ac{imdb}'s source vocabulary --- the file is \texttt{title.principals.tsv} and each row is a "principal credit." At the ontology layer (Section~\ref{sec:ontology}) the same concept is named \texttt{ce:Participation} (the abstract reified-relationship name). The \ac{r2rml} mapping bridges the two: it reads the \ac{sql} \texttt{principal} table and emits \texttt{ce:Participation} instances. We adopt the two-layer naming because the relational schema benefits from source fidelity (anyone reading \ac{imdb}'s data dictionary maps directly onto our tables), while the ontology benefits from naming a reified $n$-ary relationship after the relationship verb rather than after one source's term.
+\end{sloppypar}
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\linewidth]{fig/ERD.pdf}
+    \caption{\ac{erd} for the migrated CineExplorer schema. \texttt{Title} and \texttt{Person} are strong entity sets; \texttt{Film}, \texttt{Series}, \texttt{Episode} are partial-disjoint IS-A subtypes of \texttt{Title}; \texttt{Title\_AKA} and \texttt{Principal} are weak entity sets; \texttt{Title\_Type}, \texttt{Role}, \texttt{Profession}, \texttt{Language}, \texttt{Region}, \texttt{AKA\_Type} are lookup entity sets.}
+    \label{fig:erd}
+\end{figure}
+
+% \paragraph{Titles and IS-A.}
+The central entity set \texttt{Title} represents an audiovisual work. It carries identifier (\texttt{tconst}, \ac{imdb}'s natural key), descriptive attributes (\texttt{primary\_title}, \texttt{original\_title}, \texttt{is\_adult}, \texttt{start\_year}, \texttt{end\_year}, \texttt{runtime\_minutes}), and a popularity composite (\texttt{average\_rating}, \texttt{num\_votes}). Each \texttt{Title} is classified by exactly one \texttt{Title\_Type} (e.g., \texttt{movie}, \texttt{tvSeries}, \texttt{tvEpisode}); the \texttt{title\_type\_id} FK serves both as a classification and as the discriminator for the IS-A specialisation. \texttt{Series} is the IS-A subtype induced by \texttt{title\_type\_id~$\in$~\{tvSeries, tvMiniSeries, tvPilot\}}; \texttt{Episode} by \texttt{title\_type\_id~=~tvEpisode}; \texttt{Film} by \texttt{title\_type\_id~=~movie}. The specialisation is partial: titles whose type does not fall in this triad (for example \texttt{short}, \texttt{video}, \texttt{tvSpecial}) remain plain \texttt{Title} rows with their classification preserved but no IS-A subtype membership. Only \texttt{Episode} stores extra attributes (\texttt{parent\_tconst}, \texttt{season\_number}, \texttt{episode\_number}); \texttt{Film} and \texttt{Series} have no per-subtype attributes and so reduce to predicate views over \texttt{Title}.
+
+% \paragraph{Persons and credited participation.}
+\texttt{Person} represents people credited on titles, identified by \ac{imdb}'s \texttt{nconst}. Two distinct relationships connect persons to titles. The first is per-credit: an n-ary association between \texttt{Person}, \texttt{Title}, and \texttt{Role} is reified into the weak entity set \texttt{Principal}, identified by \texttt{(tconst, ordering)} from the source \texttt{title.principals} \ac{tsv}. \texttt{Principal} carries the per-credit attributes \texttt{role\_id} (FK to \texttt{Role}), \texttt{job} (free-text job description), and a multi-valued \texttt{character\_name} reduced to the attribute relation \texttt{Principal\_Character}. The second is career-level: a person's \ac{imdb} \texttt{primaryProfession} is a multi-valued attribute (capped at three values per person) modelled as the M:N junction \texttt{Person\_Profession} between \texttt{Person} and the \texttt{Profession} lookup. A person credited as \texttt{director} on one title and \texttt{actor} on another therefore has two \texttt{Principal} rows but may have one or both professions in \texttt{Person\_Profession} depending on what \ac{imdb} records as their career-level identification. We discuss this two-axis modelling and its consequences for the ontology below (Section~\ref{sec:onto-two-axis-discussion}).
+
+% \paragraph{Genres, alternative titles, episodes.}
+\texttt{Genre} is modelled as a multi-valued attribute on \texttt{Title} rather than as a lookup entity. The genre vocabulary is small (26 distinct values in the slice), bounded, and the value string is its own label (\texttt{Drama}, \texttt{Comedy}), so reducing it to the attribute relation \texttt{Title\_Genre(tconst, genre\_name)} preserves all expressiveness without an extra lookup table. \texttt{Title\_AKA} is a weak entity set with composite key \texttt{(tconst, ordering)} that records alternative regional or linguistic titles; it links optionally to \texttt{Language} and \texttt{Region} lookups, and to a sixth lookup \texttt{AKA\_Type} (whose 8-value vocabulary -- \texttt{imdbDisplay}, \texttt{original}, \texttt{alternative}, \texttt{tv}, \texttt{dvd}, \texttt{video}, \texttt{festival}, \texttt{working} -- carries \ac{imdb}-shorthand codes that benefit from a description column, so a flat multi-valued attribute would lose the explanation). The link is M:N because \ac{imdb}'s \texttt{title.akas.types} column may carry several codes per AKA row; the \texttt{Title\_AKA\_Type} junction reduces the relation. The series--episode hierarchy is encoded in the \texttt{title\_episode} table, which adds the \texttt{parent\_tconst} self-FK from \texttt{Episode} back to \texttt{Title} (the parent series) together with \texttt{season\_number} and \texttt{episode\_number} for ordered navigation.
+
+\subsection{Reduction to Relational Models}
+\label{subsec:reduction}
+
+The \ac{erd} reduces by the standard rules to the 16 relations listed below, grouped by reduction category:
+
+\begin{verbatim}
+% Strong entity sets (8 relations)
+Title(tconst, primary_title, original_title, is_adult,
+      start_year, end_year, runtime_minutes,
+      average_rating, num_votes, title_type_id)
+
+Person(nconst, primary_name, birth_year, death_year)
+
+Title_Type(title_type_id, title_type_name)
+Role(role_id, role_name)
+Profession(profession_id, profession_name)
+Language(language_id, language_name)
+Region(region_id, region_name)
+AKA_Type(aka_type_id, aka_type_name, aka_type_description)
+
+% IS-A subtype with extra attributes (1 relation)
+Title_Episode(tconst, parent_tconst, season_number, episode_number)
+
+% Weak entity sets (2 relations)
+Title_AKA(tconst, ordering, title, region_id, language_id,
+          is_original_title, attributes)
+Principal(tconst, ordering, nconst, role_id, job)
+
+% Multi-valued attributes and junctions (5 relations)
+Title_Genre(tconst, genre_name)
+Principal_Character(tconst, ordering, character_name)
+Person_Profession(nconst, profession_id)
+Person_Known_For(nconst, tconst)
+Title_AKA_Type(tconst, ordering, aka_type_id)
+\end{verbatim}
+
+Primary keys are the leading attributes of each signature. The full listing with attribute domains, foreign keys, and integrity constraints is in Appendix~\ref{sec:appendix-relational}.
+
+\subsection{Database Implementation}
+\label{sec:sql}
+
+The database is built in four stages: an \ac{sql} translation of the relational model, a filtering pipeline that prepares the data, a containerised MySQL deployment, and a loading step that materialises the filtered data into the canonical schema.
+
+\paragraph{1. \ac{sql} schema.}
+The 16 relations of Section~\ref{subsec:reduction} are translated into MySQL in the natural way: each relation becomes a table, primary keys become \texttt{PRIMARY KEY} declarations, weak entity sets and M:N junctions receive composite primary keys, and the foreign keys recovered by reduction become \texttt{FOREIGN KEY} constraints on the appropriate columns. \texttt{Title.tconst} and \texttt{Person.nconst} retain \ac{imdb}'s natural string keys (the source data already provides canonical identifiers); the remaining lookup tables use \texttt{INT AUTO\_INCREMENT} surrogate keys, except for \texttt{Title\_Type}, \texttt{Language}, and \texttt{Region}, which keep \ac{imdb}/ISO code strings as primary keys. The character set is \texttt{utf8mb4} throughout so that non-Latin titles (Japanese, Cyrillic, etc.) round-trip correctly.
+
+\paragraph{2. Filtering.}
+The raw \ac{imdb} non-commercial release ships seven gzipped \ac{tsv} files refreshed daily. A small Bash pipeline downloads the latest release, applies the numVotes-ranked top-$N$ rule of Section~\ref{subsec:meaningful-examples}, and joins the resulting tconst set back through the remaining \acp{tsv} to produce a filtered, FK-closed snapshot on disk. The output is seven smaller \acp{tsv} that share \ac{imdb}'s column shape but contain only the rows reachable from the top-$N$ titles. The pipeline is sentinel-guarded, so re-running against an already-prepared snapshot is a no-op.
+
+\paragraph{3. Containerised deployment.}
+The database engine and an admin UI are deployed together via Docker Compose: a pinned MySQL container as the data engine, alongside phpMyAdmin for browsing and ad-hoc inspection. Containerisation pins the engine version across team machines, isolates the project database from any host MySQL installation, and lets the filtered-\ac{tsv} directory be bind-mounted into the container so the engine reads the source files in place rather than through a copy. A single \texttt{docker compose up} brings the engine and the admin UI online with FK-strict mode and \texttt{utf8mb4} as defaults.
+
+\paragraph{4. Loading.}
+Loading proceeds via a \emph{staging-tables pattern}: the seven filtered \acp{tsv} are first bulk-loaded into disposable staging tables that mirror \ac{imdb}'s column shape exactly, then transformed into the canonical tables of stage~1 by \texttt{INSERT~\dots~SELECT} statements that apply 1NF reduction and three normalisations:
+
+\begin{sloppypar}
+\begin{itemize}
+    \item \textbf{Multi-valued attribute explosion.} Comma-separated and JSON-encoded fields in the source (\texttt{title.basics.genres}, \texttt{title.principals.characters}, \texttt{name.basics.primaryProfession}, \texttt{title.akas.types}) are unrolled into 1NF junction rows so that each multi-valued attribute lands in its own dedicated relation. The \texttt{Adult} value of the genre vocabulary is dropped at this step because the boolean \texttt{is\_adult} column on \texttt{title} already carries the same information.
+    \item \textbf{\texttt{actor}/\texttt{actress} collapse.} \ac{imdb}'s gender-split per-credit category is unified to \texttt{actor} at INSERT time; the gender axis is irrelevant to the use case and would otherwise complicate \ac{sparql} aggregations. The decision is documented in the ontology comment on \texttt{ce:Actor}.
+    \item \textbf{Foreign-key closure on \texttt{person\_known\_for}.} \ac{imdb} lists up to four notable titles per person (\texttt{name.basics.knownForTitles}); references whose target falls outside the slice are dropped at INSERT time, so every FK from \texttt{person\_known\_for.tconst} to \texttt{title.tconst} resolves to a row that is actually present.
+\end{itemize}
+\end{sloppypar}
+
+The staging tables are dropped after the canonical tables are populated, so the final database holds only the canonical schema. Foreign keys and secondary indexes are added as the last step --- after the canonical tables are filled --- which lets the bulk load complete in a single pass without per-row constraint validation. The deterministic slice (Section~\ref{subsec:meaningful-examples}) combined with the deterministic transformation chain means re-running the four stages against the same dataset snapshot reproduces the database byte-for-byte.
+
+\subsection{Meaningful Examples}
+
+The migrated database, populated from the $N=5{,}000$ global numVotes-ranked slice (Section~\ref{sec:dataset}), contains 5{,}000 titles, 38{,}067 persons, 105{,}964 principal credit rows, 256{,}858 alternative-title (\texttt{title\_aka}) rows, and 139 individual episodes --- a roughly 200$\times$ scale-up over the previous 174-title curated \ac{csv} sample on the strong entity sets, with a much wider geographical/linguistic spread on alternative titles. Spot-check examples include the cast and crew of \emph{Les Mis\'{e}rables}~(2012), the entire Marvel Cinematic Universe in the slice (where multiple films share both genres and credited persons), and the cult-series subset of \emph{Game of Thrones} and \emph{Breaking Bad} for which several individual episodes cleared the global \texttt{numVotes} threshold and were therefore retained.

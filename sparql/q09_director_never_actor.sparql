@@ -1,0 +1,16 @@
+PREFIX ce: <http://cineexplorer.local/ontology#>
+
+# Q9: Persons who directed at least one title but never acted in any title
+# Techniques: MINUS (set subtraction)
+# Note: MINUS operates on solution sets; FILTER NOT EXISTS operates on variable bindings.
+# For this pattern they produce the same result, but MINUS is semantically cleaner:
+# it reads as "remove directors who have an actedIn triple" rather than filtering.
+SELECT ?name
+WHERE {
+  ?person a ce:Director ;
+          ce:personName ?name .
+  MINUS {
+    ?person ce:actedIn ?anyTitle .
+  }
+}
+ORDER BY ?name

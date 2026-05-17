@@ -1,0 +1,90 @@
+\section{Deployment}
+\label{sec:deployment}
+
+\subsection{Architecture}
+
+The deployment consists of two independent Docker containers serving different purposes. The first container, defined in \texttt{database/docker-compose.yml}, runs MySQL~8 together with phpMyAdmin and is used exclusively during the \ac{r2rml} mapping phase to expose the source relational database on port~3307. The second set of containers, defined in \texttt{deployment/docker-compose.yml}, runs two services: Apache Fuseki~5.5.0 as the persistent \ac{sparql} triplestore on port~3030, and Brwsr as a Linked Data browser on port~5000. The two compose files are deliberately kept separate: MySQL is only needed when regenerating the knowledge graph from the relational source; Fuseki and Brwsr are used for all subsequent \ac{sparql} querying, graph navigation, and demonstration activities.
+
+\subsection{Triplestore Setup}
+
+Apache Fuseki is an \ac{rdf} triplestore and \ac{sparql}~1.1 endpoint that is part of the Apache Jena framework. It supports persistent storage via TDB2, an on-disk quad store optimised for large \ac{rdf} datasets. The Fuseki container is started with:
+
+\begin{verbatim}
+cd deployment && docker compose up -d
+\end{verbatim}
+
+Once running, a persistent TDB2 dataset named \texttt{cineexplorer} is created through the Fuseki administration API:
+
+\begin{verbatim}
+curl -u admin:admin -X POST http://localhost:3030/$/datasets \
+  -d "dbName=cineexplorer&dbType=tdb2"
+\end{verbatim}
+
+\subsection{Loading the Knowledge Graph}
+
+Both the ontology and the instance data are loaded into the default graph of the \texttt{cineexplorer} dataset. Loading the ontology alongside the instance data makes class and property declarations available in the same graph, so that \ac{sparql} queries can reference \texttt{ce:} terms directly without requiring a \texttt{FROM} clause:
+
+\begin{verbatim}
+# Load ontology (314 triples)
+curl -u admin:admin -X POST \
+  http://localhost:3030/cineexplorer/data \
+  --data-binary @ontology/cineexplorer_ontology.ttl \
+  -H "Content-Type: text/turtle"
+
+# Load knowledge graph (~1.6M triples)
+curl -u admin:admin -X POST \
+  http://localhost:3030/cineexplorer/data \
+  --data-binary @output/cineexplorer_kg.ttl \
+  -H "Content-Type: text/turtle"
+\end{verbatim}
+
+After loading, the dataset contains 1{,}611{,}676 triples in total, generated from the global numVotes-ranked top-5{,}000 slice of the official \ac{imdb} non-commercial dataset (see Section~\ref{sec:dataset}). Table~\ref{tab:kg-counts} shows the breakdown by class.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lr}
+\hline
+\textbf{Class} & \textbf{Instances} \\
+\hline
+\texttt{ce:Participation} & 105{,}964 \\
+\texttt{ce:Person}        & 38{,}067  \\
+\texttt{ce:Actor}         & 25{,}693  \\
+\texttt{ce:Writer}        & 11{,}103  \\
+\texttt{ce:Director}      & 7{,}087   \\
+\texttt{ce:Film}          & 4{,}214   \\
+\texttt{ce:Editor}        & 1{,}904   \\
+\texttt{ce:Composer}      & 1{,}776   \\
+\texttt{ce:Series}        & 622       \\
+\texttt{ce:Episode}       & 139       \\
+\texttt{ce:Genre}         & 26        \\
+\hline
+\end{tabular}
+\caption{\ac{kg} instance counts by class. \texttt{Person} subclasses (\texttt{Actor}, \texttt{Writer}, \texttt{Director}, \texttt{Editor}, \texttt{Composer}) overlap, so their sum exceeds the total \texttt{Person} count.}
+\label{tab:kg-counts}
+\end{table}
+
+\subsection{SPARQL Endpoint}
+
+The \ac{sparql}~1.1 query endpoint is available at:
+
+\begin{verbatim}
+http://localhost:3030/cineexplorer/query
+\end{verbatim}
+
+The Fuseki web interface, accessible at \texttt{http://localhost:3030}, provides a browser-based query editor, dataset management, and upload utilities. All \ac{sparql} queries described in Section~\ref{sec:sparql} were executed against this endpoint.
+
+\subsection{Linked Data Browser}
+
+Brwsr is a lightweight Linked Data browser implemented in Python~\cite{brwsr}. It acts as a frontend layer on top of the Fuseki \ac{sparql} endpoint, implementing content negotiation: when an HTTP client requests a CineExplorer \ac{iri} with \texttt{Accept: text/html}, Brwsr returns a human-readable HTML page showing all triples for that resource with clickable hyperlinks; when the client requests \texttt{Accept: text/turtle} or \texttt{application/rdf+xml}, it returns the raw \ac{rdf} serialisation. This makes every resource in the knowledge graph dereferenceable according to the Linked Data principles~\cite{cooluris}.
+
+Brwsr is configured to serve resources under the \texttt{http://cineexplorer.local/} namespace by mapping requests to the Fuseki \ac{sparql} endpoint at \texttt{http://localhost:3030/cineexplorer/query}. The browser is accessible at:
+
+\begin{verbatim}
+http://localhost:5000
+\end{verbatim}
+
+Navigating to a person \ac{iri}, for example \texttt{http://localhost:5000/data/person/nm0000102}, returns a page listing all properties of that person — name, roles, titles worked on — with each linked resource rendered as a clickable hyperlink. This allows graph exploration without writing any \ac{sparql}.
+
+\subsection{Named Graph Strategy}
+
+Both the ontology and the instance data are loaded into the default graph rather than into separate named graphs. This simplifies query writing: \ac{sparql} queries do not need \texttt{FROM} or \texttt{FROM NAMED} clauses to access either the ontology terms or the instance data. An alternative design would place the ontology in a dedicated named graph (e.g., \texttt{<urn:cineexplorer:ontology>}) to keep the two layers distinct; however, for the scale of this project the default graph approach is sufficient.

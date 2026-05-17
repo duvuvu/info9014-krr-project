@@ -1,0 +1,101 @@
+\section{Annotating the Information System}
+\label{sec:mapping}
+
+This section describes how the relational database is mapped to \ac{rdf} triples using \ac{r2rml}~\cite{r2rml}, producing an instance of the CineExplorer knowledge graph conforming to the ontology described in the previous section.
+
+\subsection{Approach}
+
+\ac{r2rml} (RDB to \ac{rdf} Mapping Language)~\cite{r2rml} is used as the mapping language. \ac{r2rml} is a W3C recommendation that defines how relational tables and \ac{sql} queries can be mapped to \ac{rdf} graphs. The mapping file \texttt{cineexplorer\_mapping.ttl} is serialized in Turtle syntax and processed by the \texttt{r2rml.jar} tool used in the lab sessions. The generated \ac{rdf} output is written to \texttt{output/cineexplorer\_kg.ttl} in Turtle format.
+
+The mapping is executed with the following command from the project root:
+
+\begin{verbatim}
+java -jar tools/r2rml/r2rml.jar mapping/mapping.properties
+\end{verbatim}
+
+where \texttt{mapping.properties} provides the JDBC connection string, credentials, input mapping file path, and output file path.
+
+The mapping strategy follows the conceptual structure of the ontology rather than directly mirroring the table structure. In particular, the mapping is organized around the main ontology entities (\texttt{CreativeWork}, \texttt{Person}, \texttt{Participation}, and \texttt{Genre}) and around a small number of additional triples maps used to enrich these entities with structural or descriptive information.
+
+The mapping consumes the canonical schema of Section~\ref{sec:infosystem} as published, with no further view layer. Multi-valued attributes (genres on \texttt{Title}, character names on \texttt{Participation}, professions on \texttt{Person}) are already 1NF-flattened into dedicated relations during the \ac{sql} \ac{etl} (Section~\ref{sec:sql}), which means the \ac{r2rml} side does not need any string-splitting tricks: each multi-valued attribute is one logical table and one triples map. This is a deliberate division of responsibilities --- the relational layer handles 1NF, the \ac{r2rml} layer handles class-and-property assignment --- and matches the textbook \ac{erd} reduction discussed in the lectures.
+
+\subsection{IRI Strategy}
+
+A consistent \ac{iri} strategy was defined to ensure that each entity has a stable identifier. \acp{iri} reuse the \ac{imdb} identifiers already present in the source data: \texttt{tconst} values for titles and \texttt{nconst} values for persons. These identifiers are stable, globally recognised, and make it unnecessary to introduce any additional keys into the schema. All \acp{iri} share the project's local namespace, \texttt{http://cineexplorer.local/\allowbreak data/}.
+
+The main \ac{iri} templates used are:
+
+\begin{sloppypar}
+\begin{itemize}
+    \item \textbf{Creative works} (\texttt{Film}, \texttt{Series}, \texttt{Episode}):\\
+\texttt{http://cineexplorer.local/data/title/\{TCONST\}}\\ where \texttt{TCONST} is the \ac{imdb} \texttt{tconst} (e.g., \texttt{tt0111161} for \emph{The Shawshank Redemption}).
+
+    \item \textbf{Persons}:\\
+\texttt{http://cineexplorer.local/data/person/\{NCONST\}}\\ where \texttt{NCONST} is the \ac{imdb} \texttt{nconst} (e.g., \texttt{nm0000128} for Russell Crowe).
+
+    \item \textbf{Genres}:\\
+\texttt{http://cineexplorer.local/data/genre/\{GENRE\_NAME\}}\\ where \texttt{GENRE\_NAME} is the genre string itself (e.g., \texttt{Drama}). The genre vocabulary is small, bounded, and the name is its own identifier in \ac{imdb}'s data, so no surrogate key is needed.
+
+    \item \textbf{Participation nodes}:\\
+\texttt{http://cineexplorer.local/data/\allowbreak participation/\{TCONST\}/\{ORDERING\}}\\ where the composite key \texttt{(TCONST, ORDERING)} matches the primary key of the \ac{sql} \texttt{principal} table (the relational schema uses \ac{imdb}'s source vocabulary; the ontology layer uses \texttt{ce:Participation} for the same concept --- see Section~\ref{sec:infosystem}). \texttt{ORDERING} is the per-title credit position from \texttt{title.principals}, which uniquely identifies one credit row even when the same person holds more than one credit on the same title (the \texttt{ORDERING} differs across credits). \texttt{NCONST} is intentionally not embedded in the \ac{iri}: a participation \ac{iri} keeps its identity even if the credited person is corrected upstream, and the \texttt{playedBy} edge still recovers the link.
+\end{itemize}
+\end{sloppypar}
+
+The migration tightened this scheme relative to earlier drafts. The previous Participation \ac{iri} template used the triple \texttt{(TITLE\_ID, TALENT\_ID, ORD)}, but with the official \ac{imdb} data it became clear that \texttt{ORD} alone (which \ac{imdb} calls \texttt{ordering}) already disambiguates within a title, and folding \texttt{NCONST} into the \ac{iri} duplicates information already available through \texttt{ce:playedBy}. The two-key form \texttt{\{TCONST\}/\{ORDERING\}} is also exactly the canonical primary key of the \ac{sql} \texttt{principal} relation, which keeps the \ac{iri} strategy aligned with the relational schema.
+
+\subsection{Mapping Structure}
+
+The mapping is organized by entity type and by the role played by each triples map in the generation of the \ac{rdf} graph.
+
+% \paragraph{Creative works.}
+\begin{sloppypar}
+Three triples maps generate the three subclasses of \texttt{CreativeWork}. The discriminator is the \texttt{TITLE\_TYPE\_ID} column on \texttt{title}: \texttt{Film} corresponds to \texttt{TITLE\_TYPE\_ID = 'movie'}, \texttt{Series} to \texttt{TITLE\_TYPE\_ID IN ('tvSeries',\allowbreak{}'tvMiniSeries', 'tvPilot')}, and \texttt{Episode} to \texttt{TITLE\_TYPE\_ID = 'tvEpisode'} (with the \texttt{title\_episode} join supplying \texttt{partOfSeries}, \texttt{seasonNumber}, and \texttt{episodeNumber}). Each map carries the popularity composite (\texttt{ce:averageRating} from \texttt{AVERAGE\_RATING}, \texttt{ce:numVotes} from \texttt{NUM\_VOTES}) and the descriptive data properties \texttt{ce:workTitle}, \texttt{ce:originalTitle}, \texttt{ce:releaseYear}, \texttt{ce:runtimeMinutes}, and \texttt{ce:isAdult}. The data properties are individually predicated, so a NULL in one column skips only that triple, not the entire subject row, as required by \ac{r2rml}~\S10.3~\cite{r2rml}.
+\end{sloppypar}
+
+Title types outside the \texttt{movie} / \texttt{tvSeries}+\texttt{tvMiniSeries}+\texttt{tvPilot} / \texttt{tvEpisode} triad (e.g., \texttt{short}, \texttt{video}, \texttt{tvMovie}, \texttt{tvSpecial}, \texttt{videoGame}) remain in the \texttt{title} relation but receive no \texttt{rdf:type} assertion: in the slice they account for 25 of 5{,}000 titles. They still appear in the \ac{kg} as objects of \texttt{ce:knownFor} and \texttt{ce:participatesIn} (hence inferred to \texttt{ce:CreativeWork} under \ac{rdfs}), which motivates either extending the mapping to cover them or filtering them out at \ac{etl} time.
+
+% \paragraph{Persons.}
+All rows from the \texttt{person} table are mapped to \texttt{ce:Person} with their descriptive data properties (\texttt{ce:personName}, \texttt{ce:birthYear}, \texttt{ce:deathYear}). Role-specific subclass membership (\texttt{Actor}, \texttt{Director}, \texttt{Writer}, \texttt{Composer}, \texttt{Editor}) is populated from \emph{two} sources: the per-credit \texttt{principal} table (joined with \texttt{role}) and the career-level \texttt{person\_profession} table (joined with \texttt{profession}). Both feeds use the same person-IRI template, so the resulting subclass-typing triples merge on the same subject. This two-axis approach (Section~\ref{sec:onto-two-axis-discussion}) means a person can be typed as \texttt{ce:Director} either because they have a director credit on some \texttt{principal} row, or because their \ac{imdb} \texttt{primaryProfession} contains \texttt{director}, or both. The \texttt{ce:hasProfession} datatype property is also emitted from \texttt{person\_profession}, so the career axis is queryable as a string attribute as well.
+
+% \paragraph{Participation.}
+The \texttt{Participation} triples map selects from the \ac{sql} \texttt{principal} table (joined with \texttt{role} for the role-name string) and generates one \texttt{ce:Participation} instance per credit row. Each instance is linked to its person via \texttt{ce:playedBy} and to its work via \texttt{ce:participatesIn}. The role name is stored as \texttt{ce:participationRole} and the free-text job description as \texttt{ce:participationProperties}. Each instance carries an \texttt{rdfs:label} constructed from the role name and the \ac{imdb} identifiers of the person and title, providing a human-readable identifier for use in \ac{sparql} results and Linked Data browsers.
+
+Character names are drawn from the \ac{sql} \texttt{principal\_character} table and mapped by a dedicated triples map targeting the same participation \ac{iri} template, adding \texttt{ce:characterName} triples without duplicating participation nodes.
+
+% \paragraph{Template-based joins.}
+Cross-entity links such as \texttt{ce:partOfSeries} and \texttt{ce:hasGenre} are expressed using matching \texttt{rr:template} patterns on both sides rather than \texttt{rr:RefObjectMap} with explicit join conditions. This is possible because all entities of the same type share a single \ac{iri} template: any map that knows a \texttt{TITLE\_ID} can construct the correct title \ac{iri} without needing a formal join. The advantage is simplicity --- no join overhead and no dependency on the logical table structure. The disadvantage is tight coupling: if the \ac{iri} template for one entity type were to change, every map that references it via template would also need to be updated. An \texttt{rr:RefObjectMap} approach would localise that change to a single parent map.
+
+% \paragraph{Genre links.}
+Genres are stored relationally as a multi-valued attribute (\texttt{title\_genre(TCONST, GENRE\_NAME)}), without a separate \texttt{genre} entity table. Two triples maps over \texttt{title\_genre} produce the \ac{rdf} representation: one creates each \texttt{ce:Genre} node from \texttt{DISTINCT GENRE\_NAME} (giving 26 instances in the slice), the other emits the \texttt{ce:hasGenre} edge from each \texttt{Title} to its genre. Both maps share the \ac{iri} template \texttt{.../data/genre/\{GENRE\_NAME\}}, so the two layers naturally merge on the same subjects.
+
+% \paragraph{Known-for links.}
+The \texttt{person\_known\_for} table, which records up to four notable works associated with a person (sourced from \ac{imdb}'s \texttt{name.basics.knownForTitles}), is mapped to \texttt{ce:knownFor} links from person \acp{iri} to title \acp{iri}. FK closure is enforced at \ac{etl} time (Section~\ref{sec:sql}), so every emitted \texttt{ce:knownFor} object resolves to a title that is actually present in the \ac{kg}.
+
+% \paragraph{Additional traversal-oriented properties.}
+Besides the participation-centered representation, the mapping also materializes several direct properties between persons and creative works, such as \texttt{workedFor} and \texttt{employed}, together with more specific sub-properties such as \texttt{actedIn}, \texttt{directed}, \texttt{wrote}, \texttt{edited}, and \texttt{composedFor}. These properties are redundant from a purely normalization-oriented point of view, since they can be recovered through \texttt{Participation}, but they make graph traversal and query writing more convenient.
+
+The \texttt{workedWith} relation between persons who collaborated on the same work is not materialised in the mapping. It is derivable at query time via shared \texttt{Participation} nodes:
+
+\begin{verbatim}
+SELECT DISTINCT ?p1 ?p2 WHERE {
+  ?par1 ce:playedBy ?p1 ; ce:participatesIn ?t .
+  ?par2 ce:playedBy ?p2 ; ce:participatesIn ?t .
+  FILTER(?p1 != ?p2)
+}
+\end{verbatim}
+
+Materialising this relation via a self-join on \texttt{title\_principal} would generate $O(n^2)$ triples and produce both directions of each pair, which is redundant given the \texttt{owl:SymmetricProperty} declaration on \texttt{ce:workedWith}.
+
+% \paragraph{Language and region metadata.}
+Language and region information is derived directly from \texttt{title\_aka} using the ISO codes stored in the \texttt{LANGUAGE\_ID} and \texttt{REGION\_ID} columns. Language and region are attached as ISO-coded string attributes to \texttt{CreativeWork} instances via \texttt{ce:language} and \texttt{ce:region}; the relational \texttt{Language} and \texttt{Region} lookup entities are not promoted to \ac{rdf} classes, since the queries in Section~\ref{sec:sparql} treat them as filter codes rather than entities to navigate.
+
+
+The generated knowledge graph is serialised to Turtle format and loaded into an Apache Fuseki triplestore for persistent storage and \ac{sparql} querying, as described in Section~\ref{sec:deployment}. Because the ontology targets the \ac{owl}~2 QL profile (Section~\ref{subsec:owl-profile}), the relevant reasoning closures (subclass, sub-property, inverse, domain/range) admit query rewriting and can be applied at query time without materialising all inferred triples beforehand; alternatively, a reasoner can be applied offline to compute closures, or queries can rely on \ac{sparql} property paths for traversal that would otherwise require inference.
+
+% \subsection{Encountered Problems}
+
+% A first difficulty was handling \texttt{NULL} values in the source data. In R2RML, a predicate-object map is skipped when the referenced column is \texttt{NULL}. This is the appropriate behavior for optional properties such as \texttt{releaseYear}, \texttt{runtimeMinutes}, \texttt{birthYear}, and \texttt{deathYear}. As a consequence, the generated RDF simply omits missing values rather than representing their absence explicitly, which is consistent with the open-world assumption.
+
+% A second difficulty concerned datatype assignment. In particular, year-valued properties are represented using \texttt{xsd:gYear}, but the R2RML processor does not infer this datatype automatically from the SQL schema. Explicit \texttt{rr:datatype xsd:gYear} declarations therefore had to be added to the relevant object maps.
+
+% A third difficulty was that some ontology-level relations, such as direct role-specific properties, can be generated in more than one way from the source data. We chose to keep the \texttt{Participation} node as the primary modeling pattern and to treat the direct person--creative work relations as traversal-oriented materializations, which preserves the conceptual clarity of the ontology while improving query usability.

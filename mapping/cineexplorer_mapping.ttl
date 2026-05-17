@@ -1,0 +1,669 @@
+##################################################################
+# CineExplorer R2RML Mapping
+#
+# Source schema:  database/imdb-schema.sql
+# Ontology:       ontology/cineexplorer_ontology.ttl
+# ERD reference:  docs/erd_specification.md
+#
+# Run with a SQL-capable R2RML engine, for example:
+#   java -cp "r2rml.jar:dependency/*" r2rml.Main mapping.properties
+#
+##################################################################
+
+@prefix rr:   <http://www.w3.org/ns/r2rml#> .
+@prefix ce:   <http://cineexplorer.local/ontology#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+
+##################################################################
+# IRI strategy (keys reuse the source IMDb identifiers)
+#   Title          http://cineexplorer.local/data/title/{TCONST}
+#   Person         http://cineexplorer.local/data/person/{NCONST}
+#   Genre          http://cineexplorer.local/data/genre/{GENRE_NAME}
+#   Participation  http://cineexplorer.local/data/participation/{TCONST}/{ORDERING}
+#
+# Ontology terms  http://cineexplorer.local/ontology#{ClassName}
+##################################################################
+
+##################################################################
+# 1. FILM   (Title rows where title_type_id = 'movie')
+##################################################################
+
+<#Film>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT TCONST, PRIMARY_TITLE, ORIGINAL_TITLE,
+             START_YEAR, END_YEAR, RUNTIME_MINUTES, IS_ADULT,
+             AVERAGE_RATING, NUM_VOTES
+      FROM   title
+      WHERE  TITLE_TYPE_ID = 'movie'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/title/{TCONST}" ;
+    rr:class ce:Film
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:workTitle ;
+    rr:objectMap [ rr:column "PRIMARY_TITLE" ; rr:datatype xsd:string ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:originalTitle ;
+    rr:objectMap [ rr:column "ORIGINAL_TITLE" ; rr:datatype xsd:string ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:releaseYear ;
+    rr:objectMap [ rr:column "START_YEAR" ; rr:datatype xsd:gYear ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:endYear ;
+    rr:objectMap [ rr:column "END_YEAR" ; rr:datatype xsd:gYear ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:runtimeMinutes ;
+    rr:objectMap [ rr:column "RUNTIME_MINUTES" ; rr:datatype xsd:nonNegativeInteger ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:isAdult ;
+    rr:objectMap [ rr:column "IS_ADULT" ; rr:datatype xsd:boolean ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:averageRating ;
+    rr:objectMap [ rr:column "AVERAGE_RATING" ; rr:datatype xsd:decimal ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:numVotes ;
+    rr:objectMap [ rr:column "NUM_VOTES" ; rr:datatype xsd:nonNegativeInteger ] ] .
+
+
+##################################################################
+# 2. SERIES   (Title rows where title_type_id IN ('tvSeries','tvMiniSeries','tvPilot'))
+##################################################################
+
+<#Series>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT TCONST, PRIMARY_TITLE, ORIGINAL_TITLE,
+             START_YEAR, END_YEAR, RUNTIME_MINUTES, IS_ADULT,
+             AVERAGE_RATING, NUM_VOTES
+      FROM   title
+      WHERE  TITLE_TYPE_ID IN ('tvSeries','tvMiniSeries','tvPilot')
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/title/{TCONST}" ;
+    rr:class ce:Series
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:workTitle ;
+    rr:objectMap [ rr:column "PRIMARY_TITLE" ; rr:datatype xsd:string ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:originalTitle ;
+    rr:objectMap [ rr:column "ORIGINAL_TITLE" ; rr:datatype xsd:string ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:releaseYear ;
+    rr:objectMap [ rr:column "START_YEAR" ; rr:datatype xsd:gYear ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:endYear ;
+    rr:objectMap [ rr:column "END_YEAR" ; rr:datatype xsd:gYear ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:runtimeMinutes ;
+    rr:objectMap [ rr:column "RUNTIME_MINUTES" ; rr:datatype xsd:nonNegativeInteger ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:isAdult ;
+    rr:objectMap [ rr:column "IS_ADULT" ; rr:datatype xsd:boolean ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:averageRating ;
+    rr:objectMap [ rr:column "AVERAGE_RATING" ; rr:datatype xsd:decimal ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:numVotes ;
+    rr:objectMap [ rr:column "NUM_VOTES" ; rr:datatype xsd:nonNegativeInteger ] ] .
+
+
+##################################################################
+# 3. EPISODE   (Title rows where title_type_id = 'tvEpisode',
+#               joined with title_episode for parent + season + episode#)
+##################################################################
+
+<#Episode>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT t.TCONST, t.PRIMARY_TITLE, t.ORIGINAL_TITLE,
+             t.START_YEAR, t.RUNTIME_MINUTES, t.IS_ADULT,
+             t.AVERAGE_RATING, t.NUM_VOTES,
+             te.PARENT_TCONST, te.SEASON_NUMBER, te.EPISODE_NUMBER
+      FROM   title t
+      JOIN   title_episode te ON te.TCONST = t.TCONST
+      WHERE  t.TITLE_TYPE_ID = 'tvEpisode'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/title/{TCONST}" ;
+    rr:class ce:Episode
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:workTitle ;
+    rr:objectMap [ rr:column "PRIMARY_TITLE" ; rr:datatype xsd:string ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:originalTitle ;
+    rr:objectMap [ rr:column "ORIGINAL_TITLE" ; rr:datatype xsd:string ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:releaseYear ;
+    rr:objectMap [ rr:column "START_YEAR" ; rr:datatype xsd:gYear ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:runtimeMinutes ;
+    rr:objectMap [ rr:column "RUNTIME_MINUTES" ; rr:datatype xsd:nonNegativeInteger ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:isAdult ;
+    rr:objectMap [ rr:column "IS_ADULT" ; rr:datatype xsd:boolean ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:averageRating ;
+    rr:objectMap [ rr:column "AVERAGE_RATING" ; rr:datatype xsd:decimal ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:numVotes ;
+    rr:objectMap [ rr:column "NUM_VOTES" ; rr:datatype xsd:nonNegativeInteger ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:seasonNumber ;
+    rr:objectMap [ rr:column "SEASON_NUMBER" ; rr:datatype xsd:nonNegativeInteger ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:episodeNumber ;
+    rr:objectMap [ rr:column "EPISODE_NUMBER" ; rr:datatype xsd:nonNegativeInteger ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:partOfSeries ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/title/{PARENT_TCONST}" ] ] .
+
+
+##################################################################
+# 4. SERIES → hasEpisode (inverse-traversal-friendly materialization)
+##################################################################
+
+<#SeriesHasEpisode>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT te.TCONST, te.PARENT_TCONST
+      FROM   title_episode te
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/title/{PARENT_TCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:hasEpisode ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/title/{TCONST}" ] ] .
+
+
+##################################################################
+# 5. GENRE   (one Genre instance per distinct genre name)
+##################################################################
+
+<#Genre>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT GENRE_NAME
+      FROM   title_genre
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/genre/{GENRE_NAME}" ;
+    rr:class ce:Genre
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:genreName ;
+    rr:objectMap [ rr:column "GENRE_NAME" ; rr:datatype xsd:string ] ] .
+
+
+##################################################################
+# 6. TITLE → hasGenre / GENRE → isGenreOf
+##################################################################
+
+<#TitleHasGenre>
+  a rr:TriplesMap ;
+  rr:logicalTable [ rr:tableName "title_genre" ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/title/{TCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:hasGenre ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/genre/{GENRE_NAME}" ] ] .
+
+<#GenreOfTitle>
+  a rr:TriplesMap ;
+  rr:logicalTable [ rr:tableName "title_genre" ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/genre/{GENRE_NAME}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:isGenreOf ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/title/{TCONST}" ] ] .
+
+
+##################################################################
+# 7. PERSON
+##################################################################
+
+<#Person>
+  a rr:TriplesMap ;
+  rr:logicalTable [ rr:tableName "person" ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{NCONST}" ;
+    rr:class ce:Person
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:personName ;
+    rr:objectMap [ rr:column "PRIMARY_NAME" ; rr:datatype xsd:string ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:birthYear ;
+    rr:objectMap [ rr:column "BIRTH_YEAR" ; rr:datatype xsd:gYear ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:deathYear ;
+    rr:objectMap [ rr:column "DEATH_YEAR" ; rr:datatype xsd:gYear ] ] .
+
+
+##################################################################
+# 8. PERSON → hasProfession (career-level profession)
+#    Reads from person_profession JOIN profession (lookup gives the name)
+##################################################################
+
+<#PersonHasProfession>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT pp.NCONST, p.PROFESSION_NAME
+      FROM   person_profession pp
+      JOIN   profession p ON p.PROFESSION_ID = pp.PROFESSION_ID
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{NCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:hasProfession ;
+    rr:objectMap [ rr:column "PROFESSION_NAME" ; rr:datatype xsd:string ] ] .
+
+
+##################################################################
+# 9. PERSON SUBCLASS TYPING
+#    Person subclasses come from career-level profession (primaryProfession),
+#    not from per-credit category. Five subclasses match the ontology.
+##################################################################
+
+<#Actor>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT pp.NCONST
+      FROM   person_profession pp
+      JOIN   profession p ON p.PROFESSION_ID = pp.PROFESSION_ID
+      WHERE  p.PROFESSION_NAME IN ('actor','actress')
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{NCONST}" ;
+    rr:class ce:Actor
+  ] .
+
+<#Director>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT pp.NCONST
+      FROM   person_profession pp
+      JOIN   profession p ON p.PROFESSION_ID = pp.PROFESSION_ID
+      WHERE  p.PROFESSION_NAME = 'director'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{NCONST}" ;
+    rr:class ce:Director
+  ] .
+
+<#Writer>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT pp.NCONST
+      FROM   person_profession pp
+      JOIN   profession p ON p.PROFESSION_ID = pp.PROFESSION_ID
+      WHERE  p.PROFESSION_NAME = 'writer'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{NCONST}" ;
+    rr:class ce:Writer
+  ] .
+
+<#Editor>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT pp.NCONST
+      FROM   person_profession pp
+      JOIN   profession p ON p.PROFESSION_ID = pp.PROFESSION_ID
+      WHERE  p.PROFESSION_NAME = 'editor'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{NCONST}" ;
+    rr:class ce:Editor
+  ] .
+
+<#Composer>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT pp.NCONST
+      FROM   person_profession pp
+      JOIN   profession p ON p.PROFESSION_ID = pp.PROFESSION_ID
+      WHERE  p.PROFESSION_NAME = 'composer'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{NCONST}" ;
+    rr:class ce:Composer
+  ] .
+
+
+##################################################################
+# 10. PARTICIPATION   (per-credit weak entity; PK = (TCONST, ORDERING))
+#     One ce:Participation RDF instance per row in the SQL `principal` table.
+##################################################################
+
+<#Participation>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT p.TCONST, p.ORDERING, p.NCONST, p.JOB,
+             r.ROLE_NAME
+      FROM   principal p
+      JOIN   role r ON r.ROLE_ID = p.ROLE_ID
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/participation/{TCONST}/{ORDERING}" ;
+    rr:class ce:Participation
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:participatesIn ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/title/{TCONST}" ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:playedBy ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/person/{NCONST}" ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:participationRole ;
+    rr:objectMap [ rr:column "ROLE_NAME" ; rr:datatype xsd:string ] ] ;
+  rr:predicateObjectMap [ rr:predicate ce:participationProperties ;
+    rr:objectMap [ rr:column "JOB" ; rr:datatype xsd:string ] ] .
+
+
+##################################################################
+# 11. PERSON → hasRole (inverse-friendly materialization)
+##################################################################
+
+<#PersonHasRole>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT TCONST, ORDERING, NCONST FROM principal
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{NCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:hasRole ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/participation/{TCONST}/{ORDERING}" ] ] .
+
+
+##################################################################
+# 12. CHARACTER NAMES   (multi-valued attribute on Participation)
+#     One ce:characterName triple per row in the SQL `principal_character`
+#     table.
+##################################################################
+
+<#CharacterName>
+  a rr:TriplesMap ;
+  rr:logicalTable [ rr:tableName "principal_character" ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/participation/{TCONST}/{ORDERING}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:characterName ;
+    rr:objectMap [ rr:column "CHARACTER_NAME" ; rr:datatype xsd:string ] ] .
+
+
+##################################################################
+# 13. KNOWN FOR   (Person → Title; M:N)
+##################################################################
+
+<#KnownFor>
+  a rr:TriplesMap ;
+  rr:logicalTable [ rr:tableName "person_known_for" ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{NCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:knownFor ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/title/{TCONST}" ] ] .
+
+
+##################################################################
+# 14. GENERIC PERSON ↔ WORK TRAVERSAL PROPERTIES
+#     :workedFor (Person → CreativeWork)  and inverse :employed
+#     Sourced from the SQL `principal` table (any role).
+##################################################################
+
+<#WorkedFor>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT TCONST, NCONST FROM principal
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{NCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:workedFor ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/title/{TCONST}" ] ] .
+
+<#Employed>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT TCONST, NCONST FROM principal
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/title/{TCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:employed ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/person/{NCONST}" ] ] .
+
+
+##################################################################
+# 15. ROLE-SPECIFIC DIRECT LINKS
+#     Five role-specific predicate pairs for the 5 OWL Person subclasses.
+#     Each reads from the SQL `principal` JOIN `role` with role_name filter.
+##################################################################
+
+<#ActedIn>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT p.TCONST, p.NCONST
+      FROM   principal p
+      JOIN   role r ON r.ROLE_ID = p.ROLE_ID
+      WHERE  r.ROLE_NAME = 'actor'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{NCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:actedIn ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/title/{TCONST}" ] ] .
+
+<#HasActor>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT p.TCONST, p.NCONST
+      FROM   principal p
+      JOIN   role r ON r.ROLE_ID = p.ROLE_ID
+      WHERE  r.ROLE_NAME = 'actor'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/title/{TCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:hasActor ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/person/{NCONST}" ] ] .
+
+<#Directed>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT p.TCONST, p.NCONST
+      FROM   principal p
+      JOIN   role r ON r.ROLE_ID = p.ROLE_ID
+      WHERE  r.ROLE_NAME = 'director'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{NCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:directed ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/title/{TCONST}" ] ] .
+
+<#DirectedBy>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT p.TCONST, p.NCONST
+      FROM   principal p
+      JOIN   role r ON r.ROLE_ID = p.ROLE_ID
+      WHERE  r.ROLE_NAME = 'director'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/title/{TCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:directedBy ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/person/{NCONST}" ] ] .
+
+<#Wrote>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT p.TCONST, p.NCONST
+      FROM   principal p
+      JOIN   role r ON r.ROLE_ID = p.ROLE_ID
+      WHERE  r.ROLE_NAME = 'writer'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{NCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:wrote ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/title/{TCONST}" ] ] .
+
+<#WrittenBy>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT p.TCONST, p.NCONST
+      FROM   principal p
+      JOIN   role r ON r.ROLE_ID = p.ROLE_ID
+      WHERE  r.ROLE_NAME = 'writer'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/title/{TCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:writtenBy ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/person/{NCONST}" ] ] .
+
+<#Edited>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT p.TCONST, p.NCONST
+      FROM   principal p
+      JOIN   role r ON r.ROLE_ID = p.ROLE_ID
+      WHERE  r.ROLE_NAME = 'editor'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{NCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:edited ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/title/{TCONST}" ] ] .
+
+<#EditedBy>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT p.TCONST, p.NCONST
+      FROM   principal p
+      JOIN   role r ON r.ROLE_ID = p.ROLE_ID
+      WHERE  r.ROLE_NAME = 'editor'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/title/{TCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:editedBy ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/person/{NCONST}" ] ] .
+
+<#ComposedFor>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT p.TCONST, p.NCONST
+      FROM   principal p
+      JOIN   role r ON r.ROLE_ID = p.ROLE_ID
+      WHERE  r.ROLE_NAME = 'composer'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{NCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:composedFor ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/title/{TCONST}" ] ] .
+
+<#ComposedBy>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT p.TCONST, p.NCONST
+      FROM   principal p
+      JOIN   role r ON r.ROLE_ID = p.ROLE_ID
+      WHERE  r.ROLE_NAME = 'composer'
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/title/{TCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:composedBy ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/person/{NCONST}" ] ] .
+
+
+##################################################################
+# 16. LANGUAGE / REGION ENRICHMENT FROM TITLE_AKA
+#     title_aka has language_id and region_id FKs to lookups.
+#     We surface language and region as datatype properties on
+#     CreativeWork (the language/region of the AKA's title).
+##################################################################
+
+<#TitleLanguage>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT a.TCONST, l.LANGUAGE_ID
+      FROM   title_aka a
+      JOIN   language l ON l.LANGUAGE_ID = a.LANGUAGE_ID
+      WHERE  a.LANGUAGE_ID IS NOT NULL
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/title/{TCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:language ;
+    rr:objectMap [ rr:column "LANGUAGE_ID" ; rr:datatype xsd:string ] ] .
+
+<#TitleRegion>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT a.TCONST, r.REGION_ID
+      FROM   title_aka a
+      JOIN   region r ON r.REGION_ID = a.REGION_ID
+      WHERE  a.REGION_ID IS NOT NULL
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/title/{TCONST}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:region ;
+    rr:objectMap [ rr:column "REGION_ID" ; rr:datatype xsd:string ] ] .
+
+##################################################################
+# 17. WORKED WITH RELATION
+#     We find all pairs of distinct persons who worked on the 
+#     same creative work (TCONST) in the principal table.
+#     Condition p1.NCONST < p2.NCONST prevents self-linking and
+#     duplicates.
+##################################################################
+
+<#WorkedWith>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT p1.NCONST AS PERSON_A, p2.NCONST AS PERSON_B
+      FROM   principal p1
+      JOIN   principal p2 ON p1.TCONST = p2.TCONST
+      WHERE  p1.NCONST != p2.NCONST
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{PERSON_A}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:workedWith ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/person/{PERSON_B}" ] ] .

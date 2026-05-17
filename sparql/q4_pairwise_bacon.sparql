@@ -1,0 +1,25 @@
+PREFIX ce: <http://cineexplorer.local/ontology#>
+
+# Q4: Pairwise Bacon distance between two specific persons.
+# Techniques: ASK, property path with exact-length quantifier {k,k}
+#
+# Why this query is shaped this way:
+#   SPARQL 1.1 property paths express *reachability*, not *distance*.
+#   There is no built-in shortest-path operator. The pairwise Bacon
+#   distance is therefore computed by iterating ASK with increasing
+#   path-length bounds — the smallest k for which the ASK returns true
+#   is the Bacon distance.
+#
+# Note on {k,k}: the exact-length quantifier is an Apache Jena extension
+# (it was in early SPARQL 1.1 drafts but removed from the final REC).
+# Fuseki accepts it. Running on a strict SPARQL 1.1 engine would require
+# rewriting (workedFor/employed){k,k} as an explicit k-fold concatenation.
+#
+# Anchors: Kevin Bacon (nm0000102)  ->  Tom Hanks (nm0000158)
+# Expected: true at k=1 (they share Apollo 13, 1995).
+ASK {
+  BIND(<http://cineexplorer.local/data/person/nm0000102> AS ?source)
+  BIND(<http://cineexplorer.local/data/person/nm0000158> AS ?target)
+  ?source (ce:workedFor/ce:employed){1,1} ?target .
+  FILTER(?source != ?target)
+}

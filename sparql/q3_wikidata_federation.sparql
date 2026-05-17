@@ -1,0 +1,38 @@
+PREFIX ce: <http://cineexplorer.local/ontology#>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+# Q3: Federated query — enrich CineExplorer persons with Wikidata birth dates
+# Techniques: SERVICE (federated query), BIND + REPLACE (IRI manipulation), OPTIONAL
+# Uses Wikidata property P345 (IMDb person ID) to match nconst values embedded in our IRIs
+# Four-person panel:
+#   nm0098842 — Alain Boublil    (in slice; Wikidata Q284540)
+#   nm1086543 — Amanda Seyfried  (in slice; Wikidata Q189226)
+#   nm0413168 — Hugh Jackman     (in slice; Wikidata Q129591)
+#   nm0401076 — Victor Hugo      (NOT in slice; Wikidata Q535) — illustrates that the
+#                                 local graph anchors the join: SERVICE resolves the
+#                                 nconst on Wikidata's side, but the row is dropped
+#                                 because there is no local ce:personName binding.
+SELECT ?localName ?nconst ?wikidataItem ?wikidataLabel ?birthDate
+WHERE {
+  VALUES ?person {
+    <http://cineexplorer.local/data/person/nm0098842>
+    <http://cineexplorer.local/data/person/nm1086543>
+    <http://cineexplorer.local/data/person/nm0413168>
+    <http://cineexplorer.local/data/person/nm0401076>
+  }
+  ?person ce:personName ?localName .
+  BIND(REPLACE(STR(?person), "^.*/", "") AS ?nconst)
+
+  SERVICE <https://query.wikidata.org/sparql> {
+    ?wikidataItem wdt:P345 ?nconst .
+    OPTIONAL {
+      ?wikidataItem wdt:P569 ?birthDate .
+    }
+    OPTIONAL {
+      ?wikidataItem rdfs:label ?wikidataLabel .
+      FILTER(LANG(?wikidataLabel) = "en")
+    }
+  }
+}
+ORDER BY ?localName
