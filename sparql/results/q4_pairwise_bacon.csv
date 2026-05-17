@@ -1,0 +1,13 @@
+source_name,source_nconst,target_name,target_nconst,k,answer,elapsed_s
+Kevin Bacon,nm0000102,Tom Hanks,nm0000158,1,TRUE,0.18
+Kevin Bacon,nm0000102,Paul Newman,nm0000056,1,FALSE,0.04
+Kevin Bacon,nm0000102,Paul Newman,nm0000056,2,TRUE,0.06
+Kevin Bacon,nm0000102,Spencer Tracy,nm0000075,1,FALSE,0.04
+Kevin Bacon,nm0000102,Spencer Tracy,nm0000075,2,FALSE,0.09
+Kevin Bacon,nm0000102,Spencer Tracy,nm0000075,3,TRUE,2.37
+Kevin Bacon,nm0000102,Max Steiner,nm0000070,1,FALSE,0.05
+Kevin Bacon,nm0000102,Max Steiner,nm0000070,2,FALSE,0.13
+Kevin Bacon,nm0000102,Max Steiner,nm0000070,3,TRUE,1.83
+Kevin Bacon,nm0000102,Groucho Marx,nm0000050,1,FALSE,0.04
+Kevin Bacon,nm0000102,Groucho Marx,nm0000050,2,FALSE,0.09
+Kevin Bacon,nm0000102,Groucho Marx,nm0000050,3,FALSE,18.14

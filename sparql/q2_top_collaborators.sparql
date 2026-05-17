@@ -1,0 +1,22 @@
+PREFIX ce: <http://cineexplorer.local/ontology#>
+
+# Q2: Person pairs who collaborated on the most titles together (top 10)
+# Techniques: subquery, COUNT DISTINCT, GROUP BY, ORDER BY, LIMIT
+# FILTER(STR(?p1) < STR(?p2)) avoids counting both (A,B) and (B,A)
+SELECT ?name1 ?name2 ?sharedTitles
+WHERE {
+  {
+    SELECT ?p1 ?p2 (COUNT(DISTINCT ?title) AS ?sharedTitles)
+    WHERE {
+      ?p1 ce:workedFor ?title .
+      ?p2 ce:workedFor ?title .
+      FILTER(STR(?p1) < STR(?p2))
+    }
+    GROUP BY ?p1 ?p2
+    ORDER BY DESC(?sharedTitles)
+    LIMIT 10
+  }
+  ?p1 ce:personName ?name1 .
+  ?p2 ce:personName ?name2 .
+}
+ORDER BY DESC(?sharedTitles)

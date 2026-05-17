@@ -1,6 +1,0 @@
-source_person,source_iri,hops,reachable,total_persons,coverage_pct
-Kevin Bacon,nm0000102,1,403,38067,1.06
-Kevin Bacon,nm0000102,2,18155,38067,47.69
-Kevin Bacon,nm0000102,3,35033,38067,92.03
-Russell Crowe,nm0000128,1,558,38067,1.47
-Russell Crowe,nm0000128,2,21214,38067,55.73

@@ -1,0 +1,19 @@
+PREFIX ce: <http://cineexplorer.local/ontology#>
+
+# Q1: Materialise ce:workedWith from shared participation in creative works
+# Techniques: CONSTRUCT, graph materialisation as workaround for OWL 2 QL
+#
+# Rationale: OWL 2 QL forbids property-chain axioms, so the rule
+#   workedFor o workedFor^- => workedWith
+# cannot be asserted in the TBox. SWRL is also outside the profile.
+# We therefore derive ce:workedWith at query time by CONSTRUCT.
+# FILTER(?p1 != ?p2) drops self-loops; both directions are emitted
+# so the resulting graph is closed under symmetry without a reasoner.
+CONSTRUCT {
+  ?p1 ce:workedWith ?p2 .
+}
+WHERE {
+  ?p1 ce:workedFor ?work .
+  ?p2 ce:workedFor ?work .
+  FILTER(?p1 != ?p2)
+}

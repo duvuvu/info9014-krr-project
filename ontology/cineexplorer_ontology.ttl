@@ -152,10 +152,11 @@ xsd:gYear rdf:type rdfs:Datatype .
 
 
 ###  http://cineexplorer.local/ontology#partOfSeries
-:partOfSeries rdf:type owl:ObjectProperty ;
+:partOfSeries rdf:type owl:ObjectProperty ,
+                       owl:AsymmetricProperty ;
               rdfs:domain :Episode ;
               rdfs:range :Series ;
-              rdfs:comment "Relates an episode to the series it belongs to. The 'exactly one Series per Episode' constraint is enforced by the SHACL EpisodeShape."@en ;
+              rdfs:comment "Relates an episode to the series it belongs to. Asymmetric (an episode is part of a series; a series is not part of an episode)."@en ;
               rdfs:label "part of series"@en .
 
 
@@ -175,12 +176,6 @@ xsd:gYear rdf:type rdfs:Datatype .
           rdfs:label "played by"@en .
 
 
-###  http://cineexplorer.local/ontology#sameAsExternal
-:sameAsExternal rdf:type owl:ObjectProperty ;
-                rdfs:comment "Relates a local resource to an externally identified equivalent resource, for example in Wikidata."@en ;
-                rdfs:label "same as external"@en .
-
-
 ###  http://cineexplorer.local/ontology#workedFor
 :workedFor rdf:type owl:ObjectProperty ;
            rdfs:domain :Person ;
@@ -191,10 +186,11 @@ xsd:gYear rdf:type rdfs:Datatype .
 
 ###  http://cineexplorer.local/ontology#workedWith
 :workedWith rdf:type owl:ObjectProperty ,
-                     owl:SymmetricProperty ;
+                     owl:SymmetricProperty ,
+                     owl:IrreflexiveProperty ;
             rdfs:domain :Person ;
             rdfs:range :Person ;
-            rdfs:comment "Relates two persons who collaborated on the same creative work. This property is intended mainly as a derived relation for querying and Bacon-style graph exploration."@en ;
+            rdfs:comment "Relates two persons who collaborated on the same creative work. Symmetric and irreflexive."@en ;
             rdfs:label "worked with"@en .
 
 
@@ -281,7 +277,7 @@ xsd:gYear rdf:type rdfs:Datatype .
 :hasProfession rdf:type owl:DatatypeProperty ;
                rdfs:domain :Person ;
                rdfs:range xsd:string ;
-               rdfs:comment "Career-level profession of a person, as labelled by IMDb's primaryProfession (e.g., 'actor', 'producer', 'cinematographer'). Up to 3 values per person. Distinct from per-credit role on a Participation."@en ;
+               rdfs:comment "Career-level profession of a person, as labelled by IMDb's primaryProfession (e.g., 'actor', 'producer', 'cinematographer'). Distinct from per-credit role on a Participation."@en ;
                rdfs:label "has profession"@en .
 
 
@@ -425,7 +421,7 @@ xsd:gYear rdf:type rdfs:Datatype .
 ###  http://cineexplorer.local/ontology#Episode
 :Episode rdf:type owl:Class ;
          rdfs:subClassOf :CreativeWork ;
-         rdfs:comment "A creative work that is an episode of a series. The 'exactly one Series' cardinality is enforced by the SHACL EpisodeShape."@en ;
+         rdfs:comment "A creative work that is an episode of a series."@en ;
          rdfs:label "Episode"@en .
 
 
@@ -446,7 +442,7 @@ xsd:gYear rdf:type rdfs:Datatype .
 ###  http://cineexplorer.local/ontology#Participation
 :Participation rdf:type owl:Class ;
                owl:disjointWith :Person ;
-               rdfs:comment "A contextual participation of a person in a creative work, optionally carrying character name, participation role, or other participation metadata. The 'exactly one Person and one CreativeWork' cardinalities are enforced by the SHACL ParticipationShape."@en ;
+               rdfs:comment "A contextual participation of a person in a creative work, optionally carrying character name, participation role, or other participation metadata."@en ;
                rdfs:label "Participation"@en .
 
 
