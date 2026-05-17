@@ -1,0 +1,54 @@
+# ============================================================
+# OS / editor
+# ============================================================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# ============================================================
+# Python
+# ============================================================
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# ============================================================
+# LaTeX build artefacts (report/)
+# Keep: *.tex, *.bib, *.pdf, fig/, sec/
+# ============================================================
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lot
+*.out
+*.synctex.gz
+*.toc
+*.run.xml
+*.bcf
+
+# ============================================================
+# Large generated artefacts (regenerate locally)
+# ============================================================
+# Materialised knowledge graph: ~119 MB — produced by r2rml.jar
+output/cineexplorer_kg.ttl
+
+# Q1 CONSTRUCT output: ~87 MB — produced by running q1
+sparql/results/q1_workedwith.ttl
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# ============================================================
+# Project-specific
+# ============================================================
+# Raw IMDb dumps are already ignored in database/sources/imdb-official/.gitignore
