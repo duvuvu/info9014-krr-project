@@ -1,0 +1,15 @@
+# UV virtual env
+.venv/
+.python-version
+uv.lock
+
+# Jupyter cruft
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# Notebook outputs (we strip outputs before committing — see README.md)
+# but keep .ipynb files committed in clean form.
+
+# Generated figures / tables
+output/

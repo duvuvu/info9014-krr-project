@@ -643,3 +643,27 @@
   ] ;
   rr:predicateObjectMap [ rr:predicate ce:region ;
     rr:objectMap [ rr:column "REGION_ID" ; rr:datatype xsd:string ] ] .
+
+##################################################################
+# 17. WORKED WITH RELATION
+#     We find all pairs of distinct persons who worked on the 
+#     same creative work (TCONST) in the principal table.
+#     Condition p1.NCONST < p2.NCONST prevents self-linking and
+#     duplicates.
+##################################################################
+
+<#WorkedWith>
+  a rr:TriplesMap ;
+  rr:logicalTable [
+    rr:sqlQuery """
+      SELECT DISTINCT p1.NCONST AS PERSON_A, p2.NCONST AS PERSON_B
+      FROM   principal p1
+      JOIN   principal p2 ON p1.TCONST = p2.TCONST
+      WHERE  p1.NCONST != p2.NCONST
+    """
+  ] ;
+  rr:subjectMap [
+    rr:template "http://cineexplorer.local/data/person/{PERSON_A}"
+  ] ;
+  rr:predicateObjectMap [ rr:predicate ce:workedWith ;
+    rr:objectMap [ rr:template "http://cineexplorer.local/data/person/{PERSON_B}" ] ] .

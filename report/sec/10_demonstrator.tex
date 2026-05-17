@@ -1,0 +1,142 @@
+\section{Non-trivial Demonstrator}
+\label{sec:demonstrator}
+
+This section presents two non-trivial demonstrations built on top of the CineExplorer knowledge graph: a collaboration-graph analysis based on the Bacon number concept, and a \ac{shacl} structural validation that contrasts closed-world constraint checking with the open-world semantics of the \ac{owl} ontology. Together they exercise both directions of ``going beyond simple SELECT queries'': graph-shaped analytics that would be awkward in \ac{sql}, and meta-level reasoning about the graph itself.
+
+\subsection{Bacon Number --- Collaboration Graph Analysis}
+
+\subsubsection{Concept}
+
+The \emph{Six Degrees of Kevin Bacon} game assigns a ``Bacon number'' to each actor: 0 for Kevin Bacon himself, 1 for anyone who appeared in a film with him, 2 for anyone who appeared with a Bacon-number-1 actor, and so on. In graph terms, this is the length of the shortest path in the collaboration graph, where nodes are persons and edges connect persons who worked on the same title.
+
+In the CineExplorer \ac{kg}, collaboration paths are expressed with \ac{sparql}~1.1 property paths. Each hop traverses one shared title: \texttt{ce:workedFor} goes from a person to a creative work, and \texttt{ce:employed} goes back from the work to another person. The path \texttt{(ce:workedFor/ce:employed)\{1,n\}} finds all persons reachable within 1 to $n$ hops. Iterating on $n$ yields the \emph{Bacon-number ball} expanding around the source.
+
+\subsubsection{Source Person}
+
+We use Kevin Bacon himself (\texttt{nm0000102}) as the anchor for the canonical demonstration --- both because it preserves the original game and because the migrated \ac{kg} contains his full filmography slice (his profession matches the \texttt{numVotes} top-ranking criterion of Section~\ref{sec:dataset}). For comparison we also report the same expansion starting from Russell Crowe (\texttt{nm0000128}), the project's running example through \emph{Les Mis\'{e}rables}~(2012).
+
+\subsubsection{Bacon Number Results}
+
+Table~\ref{tab:bacon-counts} reports the size of the reachable set $|R_n|$ at hop counts $n \in \{1, 2, 3\}$, expressed both in absolute terms and as a percentage of the 38{,}067 persons in the \ac{kg}.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lrrrr}
+\hline
+\textbf{Source} & \textbf{1-hop} & \textbf{2-hop} & \textbf{3-hop} & \textbf{Coverage @3} \\
+\hline
+Kevin Bacon (\texttt{nm0000102}) & 403 & 18{,}155 & 35{,}033 & 92.0\% \\
+Russell Crowe (\texttt{nm0000128}) & 558 & 21{,}214 & ---      & 55.7\% @2 \\
+\hline
+\end{tabular}
+\caption{Bacon-number expansion from two source persons. Each column counts distinct persons reachable within $n$ hops via \texttt{(ce:workedFor/ce:employed)$\{1,n\}$}, excluding the source. Coverage~@3 is computed against the 38{,}067 \texttt{ce:Person} instances in the \ac{kg}.}
+\label{tab:bacon-counts}
+\end{table}
+
+The Kevin Bacon ball expands roughly exponentially: $\sim$45$\times$ from 1-hop to 2-hop, then a further $\sim$2$\times$ to 3-hop where it covers 92\% of the entire person catalogue. By three hops, 35{,}033 of the 38{,}067 persons in the \ac{kg} are reachable from Kevin Bacon; only 3{,}034 remain unreachable, almost all of them on isolated short / video / videoGame titles whose participations did not overlap with the main film cluster (see Section~\ref{sec:demonstrator-shacl-discussion}).
+
+This is the structural property that motivated migrating away from the previous curated sample of 174 titles. In that earlier dataset, no person appeared on more than one title and the collaboration graph was a disjoint union of one cluster per title; the 1-hop and 2-hop neighbourhoods coincided trivially because no intermediary person could span two productions. The migrated \ac{kg}, with each person averaging 2.78 credits, recovers the expanding-neighbourhood behaviour that gives the Bacon-number game its meaning.
+
+\subsubsection{Path Reconstruction}
+
+To make the path explicit, we can recover the bridge title between any two persons:
+
+\begin{lstlisting}[language=SPARQL]
+PREFIX ce: <http://cineexplorer.local/ontology#>
+
+SELECT ?bridgeTitle WHERE {
+  BIND(<http://cineexplorer.local/data/person/nm0000102> AS ?p1)
+  BIND(<http://cineexplorer.local/data/person/nm0000128> AS ?p2)
+  ?p1 ce:workedFor ?w .
+  ?p2 ce:workedFor ?w .
+  ?w  ce:workTitle ?bridgeTitle .
+}
+\end{lstlisting}
+
+Variants of the same query template, parameterised over $\texttt{?p1}$ and $\texttt{?p2}$, also recover full $n$-hop paths by chaining \texttt{ce:workedFor/ce:employed} multiple times in a single \ac{bgp}. Since a Bacon-number computation is essentially a shortest-path query over the collaboration graph, this demonstrates that the \ac{kg} supports graph-shaped analytics natively, without requiring an external graph engine or a separately materialised collaboration relation.
+
+\subsection{SHACL Structural Validation}
+
+\subsubsection{SHACL vs OWL Cardinality}
+
+\ac{shacl} (Shapes Constraint Language) is a W3C standard for expressing structural constraints on \ac{rdf} graphs and validating instances against them. Unlike \ac{owl} cardinality restrictions, which operate under the \ac{owa} (an absent triple does not mean a constraint is violated), \ac{shacl} operates under the \ac{cwa}: a missing required triple is reported as a violation.
+
+The CineExplorer ontology already encodes structural intent through \ac{owl} axioms (minimum cardinalities, disjointness). \ac{shacl} complements this by enabling runtime validation of the generated knowledge graph against explicitly stated structural shapes, which lets us \emph{detect} data-quality issues that \ac{owl} alone would silently allow.
+
+\subsubsection{Shapes Defined}
+
+Five \texttt{NodeShape}s were defined in \texttt{sparql/cineexplorer\_shapes.ttl}:
+
+\begin{sloppypar}
+\begin{enumerate}
+\item \textbf{CreativeWorkShape} --- every \texttt{ce:CreativeWork} must have exactly one \texttt{ce:workTitle} (\texttt{xsd:string}), exactly one \texttt{ce:averageRating} (\texttt{xsd:decimal} in $[1.0, 10.0]$), and exactly one \texttt{ce:numVotes} (\texttt{xsd:nonNegativeInteger}).
+\item \textbf{PersonShape} --- every \texttt{ce:Person} must have exactly one \texttt{ce:personName}; \texttt{ce:hasProfession} is optional, with at most three values per person (matching \ac{imdb}'s \texttt{primaryProfession} field).
+\item \textbf{EpisodeShape} --- every \texttt{ce:Episode} must link to exactly one \texttt{ce:Series} via \texttt{ce:partOfSeries}.
+\item \textbf{ParticipationShape} --- every \texttt{ce:Participation} must link to exactly one \texttt{ce:Person} via \texttt{ce:playedBy}, exactly one \texttt{ce:CreativeWork} via \texttt{ce:participatesIn}, and have at least one \texttt{ce:participationRole} string.
+\item \textbf{GenreShape} --- every \texttt{ce:Genre} must have exactly one \texttt{ce:genreName} (\texttt{xsd:string}).
+\end{enumerate}
+\end{sloppypar}
+
+The mandatory \texttt{ce:averageRating} and \texttt{ce:numVotes} constraints follow directly from the slice criterion of Section~\ref{sec:dataset}: every title carried into the \ac{kg} was selected by \texttt{numVotes} ranking, so each title is expected to carry both values. This is a textbook case where the \ac{shacl} shape captures a real integrity invariant of the \ac{etl} pipeline.
+
+\subsubsection{Validation Results}
+
+Validation was performed with pyshacl~0.31.0 in two configurations.
+
+\textbf{Run 1 --- without ontology inference.} The shapes file is loaded together with the data graph; no ontology axioms are added.
+
+\begin{verbatim}
+pyshacl -s sparql/cineexplorer_shapes.ttl \
+        -d output/cineexplorer_kg.ttl \
+        -f human
+-- Conforms: False
+-- Results (105,964 violations)
+\end{verbatim}
+
+\textbf{Run 2 --- with \ac{rdfs} inference on (ontology + data).} The ontology is provided as a separate graph, and pyshacl materialises the \ac{rdfs} entailment closure before validation.
+
+\begin{verbatim}
+pyshacl -s sparql/cineexplorer_shapes.ttl \
+        -e ontology/cineexplorer_ontology.ttl \
+        -i rdfs \
+        -d output/cineexplorer_kg.ttl \
+        -f human
+-- Conforms: False
+-- Results (75 violations across 25 focus nodes)
+\end{verbatim}
+
+\begin{sloppypar}
+The two runs differ by more than three orders of magnitude. The cause is the same constraint in both runs --- \texttt{sh:class~ce:CreativeWork} on \texttt{ParticipationShape}'s \texttt{ce:participatesIn} path --- but the population of focus nodes that satisfy it changes radically once subclass reasoning is applied. In Run~1, every \texttt{ce:Participation} (105{,}964 instances) reports a violation because the value of its \texttt{ce:participatesIn} edge is typed only as \texttt{ce:Film}, \texttt{ce:Series}, or \texttt{ce:Episode} --- never as \texttt{ce:CreativeWork} directly --- and pyshacl without inference cannot see that \texttt{ce:Film}~\texttt{rdfs:subClassOf}~\texttt{ce:CreativeWork}. In Run~2, \ac{rdfs} entailment populates the missing \texttt{rdf:type} triples and that constraint is satisfied for every Participation. The 105{,}964~$\to$~75 reduction is a clean illustration of the \ac{owa} / \ac{cwa} trade-off in real numbers.
+\end{sloppypar}
+
+\subsubsection{Discussion}
+\label{sec:demonstrator-shacl-discussion}
+
+Run~2 still reports 75 violations across 25 distinct focus nodes (Table~\ref{tab:shacl-run2}). These are not noise: they identify a real, otherwise-invisible mapping gap that the migration introduced.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{lr}
+\hline
+\textbf{Constraint message (truncated)} & \textbf{Violations} \\
+\hline
+Every CreativeWork must have exactly one \texttt{ce:workTitle}.        & 25 \\
+Every CreativeWork must have exactly one \texttt{ce:averageRating} in $[1.0, 10.0]$. & 25 \\
+Every CreativeWork must have exactly one \texttt{ce:numVotes} $\geq 0$. & 25 \\
+\hline
+\end{tabular}
+\caption{Run~2 SHACL violations. All 75 violations come from the same 25 focus nodes, each missing the three mandatory \texttt{CreativeWork} attributes.}
+\label{tab:shacl-run2}
+\end{table}
+
+\begin{sloppypar}
+The 25 focus nodes are titles whose \texttt{rdf:type} is inferred to \texttt{ce:CreativeWork} (because they appear as the object of \texttt{ce:participatesIn} or \texttt{ce:knownFor}, both of which have \texttt{rdfs:range}~\texttt{ce:CreativeWork}) but for which no triple-map ever emitted core attributes. Tracing back to the relational source, all 25 belong to \ac{imdb} \texttt{titleType} values that the \ac{r2rml} mapping does not cover: \texttt{video}~(9), \texttt{short}~(5), \texttt{tvMovie}~(5), \texttt{tvSpecial}~(3), and \texttt{videoGame}~(3). The mapping covers only \texttt{movie}~$\to$~\texttt{ce:Film}, \texttt{tvSeries}/\texttt{tvMiniSeries}/\texttt{tvPilot}~$\to$~\texttt{ce:Series}, and \texttt{tvEpisode}~$\to$~\texttt{ce:Episode}; the remaining types pass through to the database but produce no class-level \ac{rdf}. They are still referenced from the Person side --- a \texttt{Participation} on a \texttt{tvSpecial}, or a \texttt{ce:knownFor} link to a \texttt{video}, both produce object \acp{iri} that point to those titles --- so under \ac{rdfs} inference the dangling references appear as bare \texttt{ce:CreativeWork} instances with no attributes.
+
+This finding illustrates the value of \ac{shacl} for \ac{kg} quality assurance. \ac{owl} alone, under the \ac{owa}, would treat the missing \texttt{ce:workTitle} / \texttt{ce:averageRating} / \texttt{ce:numVotes} triples as ``not yet known'' and raise no contradiction --- the dangling references would remain invisible. \ac{shacl} with \ac{rdfs} inference makes the integrity gap explicit and points directly at the mapping coverage to fix. The two runs together correspond to two different \ac{krr} perspectives on the same data: \ac{owl}'s open-world view, in which absence is non-information, and \ac{shacl}'s closed-world view, in which absence is the report.
+\end{sloppypar}
+
+\subsection{Summary}
+
+The two demonstrators exercise complementary capabilities of the deployment. The Bacon-number analysis shows that the migrated \ac{kg}'s collaboration graph is rich enough to support meaningful path queries, with a Kevin-Bacon ball that covers 92\% of all persons within three hops. The \ac{shacl} validation shows that the ontology's structural intent can be turned into actionable integrity checks, with the two-run comparison surfacing both the \ac{owa} / \ac{cwa} distinction at the conceptual level and a concrete 25-title mapping gap at the data level. Both demonstrators are reproducible from the artefacts in the repository --- the \ac{sparql} queries in \texttt{sparql/q06\_bacon\_number.sparql} and \texttt{sparql/q06b\_bacon\_2hops.sparql}, and the \ac{shacl} shapes in \texttt{sparql/cineexplorer\_shapes.ttl}.

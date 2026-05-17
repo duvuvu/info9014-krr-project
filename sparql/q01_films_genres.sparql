@@ -1,0 +1,14 @@
+PREFIX ce: <http://cineexplorer.local/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+# Q1: Films with genres and runtime, ordered longest first
+# Techniques: SELECT, multi-join, ORDER BY
+SELECT ?title ?genre ?runtime
+WHERE {
+  ?film a ce:Film ;
+        ce:workTitle ?title ;
+        ce:runtimeMinutes ?runtime ;
+        ce:hasGenre ?g .
+  ?g ce:genreName ?genre .
+}
+ORDER BY DESC(?runtime)

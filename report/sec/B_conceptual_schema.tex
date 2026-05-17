@@ -1,0 +1,106 @@
+\section{Additional Information on the Relational Model}
+\label{sec:appendix-relational}
+
+This appendix supplements Section~\ref{subsec:reduction} with the modelling assumptions, attribute domains, and non-visible integrity constraints of the migrated CineExplorer relational schema. The 16 relations are listed in Section~\ref{subsec:reduction}; the \ac{erd} they reduce from is in Section~\ref{sec:infosystem}, Figure~\ref{fig:erd}.
+
+\subsection{Modelling Assumptions and Cardinalities}
+
+Table~\ref{tab:erd-assumptions} summarises the main modelling assumptions and min-max cardinalities used in the \ac{erd}.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Key \ac{erd} assumptions and cardinalities for the migrated schema.}
+\label{tab:erd-assumptions}
+\begin{tabularx}{\textwidth}{lX}
+\hline
+\textbf{Element} & \textbf{Assumption / cardinality (min, max)} \\
+\hline
+\texttt{Title} -- \texttt{Title\_Type} & Each Title has exactly one Title\_Type: Title (1,1) to Title\_Type (0,N). The \texttt{title\_type\_id} FK on \texttt{title} both classifies and serves as the IS-A discriminator. \\
+\texttt{Title} -- \texttt{Genre} (multi-valued attribute) & A Title may have zero or more genres: Title (0,N) to Genre name. Reduced to attribute relation \texttt{title\_genre(TCONST, GENRE\_NAME)}; \texttt{genre\_name} is part of the PK encoding the multi-valued attribute. The \texttt{Adult} value is excluded at \ac{etl} time; the boolean \texttt{is\_adult} on \texttt{Title} carries that information. \\
+\texttt{Principal} (\texttt{Title}, \texttt{Person}, \texttt{Role}) & The n-ary association is reified into the weak entity set \texttt{Principal} (named after \ac{imdb}'s source vocabulary; the ontology layer calls the same concept \texttt{ce:Participation}). Identified by \texttt{(tconst, ordering)}. Cardinalities: Title (0,N) to Principal (1,1); Person (0,N) to Principal (1,1); Role (0,N) to Principal (1,1). Each Principal carries \texttt{job} and a multi-valued \texttt{character\_name}. \\
+\texttt{Title\_AKA} as weak entity set & Identified by Title plus local \texttt{ordering}. Identifying relationship: Title (0,N) to Title\_AKA (1,1). \\
+\texttt{Title\_AKA} -- \texttt{Language} / \texttt{Region} & Optional links: Title\_AKA (0,1) to Language (0,N); Title\_AKA (0,1) to Region (0,N). \\
+\texttt{Title\_AKA} -- \texttt{AKA\_Type} & M:N. One AKA may carry several types (e.g., \texttt{imdbDisplay} and \texttt{dvd}); \ac{imdb} stores them as byte-\texttt{0x02}-separated values. Cardinality: Title\_AKA (0,N) to AKA\_Type (0,N), reduced via the \texttt{title\_aka\_type} junction. \texttt{AKA\_Type} is the only seeded lookup (its 8-value vocabulary is documented and stable, so each row carries a description as well as a name). \\
+\texttt{Series} / \texttt{Episode} / \texttt{Film} (IS-A) & IS-A of \texttt{Title}, partial-disjoint, discriminator-driven. \texttt{Series} = \{tvSeries, tvMiniSeries, tvPilot\}; \texttt{Episode} = tvEpisode; \texttt{Film} = movie. Other \texttt{title\_type\_id} values remain plain \texttt{Title} rows. Only \texttt{Episode} stores extra attributes (in \texttt{title\_episode}). \\
+\texttt{Series} -- \texttt{Episode} (\texttt{hasEpisode}) & Conceptually each Episode belongs to exactly one Series: Episode (1,1) to Series (1,N). The slice criterion may produce series with zero episodes in the slice, so the implemented cardinality is recorded as Episode (1,1) to Series (0,N). Season and episode numbers are stored in \texttt{title\_episode}. \\
+\texttt{Person} -- \texttt{Profession} (\texttt{hasProfession}) & Career-level multi-valued attribute, capped at 3 per Person by \ac{imdb}: Person (0,3) to Profession (0,N). M:N junction \texttt{person\_profession}. \\
+\texttt{Person} -- \texttt{Title} (\texttt{knownFor}) & Capped at 4 known-for titles per Person by \ac{imdb}: Person (0,4) to Title (0,N). M:N junction \texttt{person\_known\_for}, FK-closed at \ac{etl} time so all retained references resolve to the slice. \\
+\hline
+\end{tabularx}
+\end{table}
+
+\subsection{Notes on the Reduction}
+
+The four-group reduction listed in Section~\ref{subsec:reduction} resolves as follows. The six lookup relations (\texttt{Title\_Type}, \texttt{Role}, \texttt{Profession}, \texttt{Language}, \texttt{Region}, \texttt{AKA\_Type}) carry the bounded label sets used in the source \acp{tsv}; each is referenced by FKs from at least one weak entity set and may carry display attributes. Five are populated dynamically from the staging tables; \texttt{AKA\_Type} is the exception, seeded with the 8 \ac{imdb}-documented codes plus a human-readable description column (the codes such as \texttt{imdbDisplay}, \texttt{dvd}, \texttt{working} are not self-describing). For the IS-A specialisation, only \texttt{Episode} carries extra attributes (\texttt{title\_episode}); \texttt{Film} and \texttt{Series} are encoded entirely by the discriminator \texttt{title.title\_type\_id} and reduce to predicate views over \texttt{Title}. Both weak entities (\texttt{Title\_AKA}, \texttt{Principal}) take their composite PK \texttt{(tconst, ordering)} directly from the source \acp{tsv}. Among the five multi-valued/junction reductions, \texttt{Title\_Genre} and \texttt{Principal\_Character} encode multi-valued attributes whose value is part of the PK, while \texttt{Person\_Profession}, \texttt{Person\_Known\_For}, and \texttt{Title\_AKA\_Type} are true M:N junctions whose ends are both entity sets; \texttt{Title\_AKA\_Type} is itself the reduction of \ac{imdb}'s byte-\texttt{0x02}-separated multi-valued \texttt{title.akas.types} attribute --- one row per (AKA, type) pair, with FKs into both \texttt{Title\_AKA} (composite) and \texttt{AKA\_Type}.
+
+\subsection{Attribute Domains}
+\label{sec:attr-domains}
+
+The attribute domains are inferred from the \ac{imdb} non-commercial dataset~\cite{imdb-noncommercial}. Each \texttt{tconst}/\texttt{nconst} string-PK is enforced by the natural-key pattern \texttt{tt\textbackslash d+}~/~\texttt{nm\textbackslash d+}. Numeric attributes use \ac{sql} \texttt{INT} where \ac{imdb} provides a year or a count, and \texttt{DECIMAL(3,1)} for \texttt{average\_rating}. Non-numeric attributes use \texttt{VARCHAR} with capacity sufficient for the longest value observed in the slice (500 characters for primary/original titles, 100 for label-set names, 64 for shorter codes such as \texttt{role\_name}).
+
+\begin{itemize}
+  \item \textbf{Title}
+  \begin{itemize}
+    \item dom(\texttt{tconst}) = strings matching pattern \texttt{tt\textbackslash d+}
+    \item dom(\texttt{primary\_title}), dom(\texttt{original\_title}) = non-empty string
+    \item dom(\texttt{is\_adult}) = $\{0,1\}$
+    \item dom(\texttt{start\_year}), dom(\texttt{end\_year}), dom(\texttt{runtime\_minutes}) = $\mathbb{N} \cup \{\text{null}\}$
+    \item dom(\texttt{average\_rating}) = $[1.0, 10.0] \cup \{\text{null}\}$ (\ac{imdb}'s range)
+    \item dom(\texttt{num\_votes}) = $\mathbb{N} \cup \{\text{null}\}$
+    \item dom(\texttt{title\_type\_id}) = bounded string set $\{\text{movie}, \text{tvSeries}, \dots\}$ (FK)
+  \end{itemize}
+  \item \textbf{Person}
+  \begin{itemize}
+    \item dom(\texttt{nconst}) = strings matching pattern \texttt{nm\textbackslash d+}
+    \item dom(\texttt{primary\_name}) = non-empty string
+    \item dom(\texttt{birth\_year}), dom(\texttt{death\_year}) = $\mathbb{N} \cup \{\text{null}\}$
+  \end{itemize}
+  \item \textbf{Lookup entity sets} (\texttt{Title\_Type}, \texttt{Role}, \texttt{Profession}, \texttt{Language}, \texttt{Region})
+  \begin{itemize}
+    \item Each has a string or \texttt{INT} PK plus a non-empty \texttt{*\_name} attribute. \texttt{Language\_id} and \texttt{Region\_id} use ISO codes (alphanumeric strings); \texttt{title\_type\_id} uses \ac{imdb}'s enumeration (e.g., \texttt{movie}); \texttt{role\_id} and \texttt{profession\_id} are surrogate \texttt{INT AUTO\_INCREMENT}.
+  \end{itemize}
+  \item \textbf{Title\_AKA} (weak entity set)
+  \begin{itemize}
+    \item dom(\texttt{ordering}) = $\mathbb{N}^+$
+    \item dom(\texttt{title}) = non-empty string (the alternative title)
+    \item dom(\texttt{is\_original\_title}) = $\{0,1\}$
+    \item dom(\texttt{attributes}) = string $\cup\,\{\text{null}\}$ (free-text qualifiers)
+    \item dom(\texttt{region\_id}), dom(\texttt{language\_id}) = ISO code $\cup\,\{\text{null}\}$ (FK)
+  \end{itemize}
+  \item \textbf{Title\_AKA\_Type} (M:N junction)
+  \begin{itemize}
+    \item dom(\texttt{aka\_type\_id}) $\in\,\{$\texttt{imdbDisplay}, \texttt{original}, \texttt{alternative}, \texttt{tv}, \texttt{dvd}, \texttt{video}, \texttt{festival}, \texttt{working}$\}$ (FK to seeded \texttt{AKA\_Type} lookup).
+  \end{itemize}
+  \item \textbf{Principal} (weak entity set)
+  \begin{itemize}
+    \item dom(\texttt{ordering}) = $\mathbb{N}^+$
+    \item dom(\texttt{role\_id}) = $\mathbb{N}^+$ (FK)
+    \item dom(\texttt{job}) = string $\cup\,\{\text{null}\}$
+  \end{itemize}
+  \item \textbf{Title\_Episode} (IS-A subtype)
+  \begin{itemize}
+    \item dom(\texttt{parent\_tconst}) = matches pattern \texttt{tt\textbackslash d+} (FK to \texttt{Title})
+    \item dom(\texttt{season\_number}), dom(\texttt{episode\_number}) = $\mathbb{N}^+ \cup \{\text{null}\}$
+  \end{itemize}
+  \item \textbf{Title\_Genre} (multi-valued attribute)
+  \begin{itemize}
+    \item dom(\texttt{genre\_name}) = bounded string set, 26 distinct values in the slice (Adult excluded).
+  \end{itemize}
+  \item \textbf{Principal\_Character} (multi-valued attribute)
+  \begin{sloppypar}
+  \begin{itemize}
+    \item dom(\texttt{character\_name}) = non-empty string (after JSON-array unwrap from \texttt{title.principals.characters}).
+  \end{itemize}
+  \end{sloppypar}
+\end{itemize}
+
+\subsection{Description of Non-visible Integrity Constraints}
+\label{sec:non-visible-constraints}
+\begin{itemize}
+    \item If both \texttt{start\_year} and \texttt{end\_year} are present for a \texttt{Title}, then \texttt{start\_year} $\leq$ \texttt{end\_year}.
+    \item If both \texttt{birth\_year} and \texttt{death\_year} are present for a \texttt{Person}, then \texttt{birth\_year} $\leq$ \texttt{death\_year}.
+    \item If \texttt{average\_rating} is present, its domain is $[1.0, 10.0]$ (\ac{imdb}'s published range).
+    \item For every retained \texttt{tconst} in \texttt{principal.tconst}, a corresponding row exists in \texttt{title}; for \texttt{principal.nconst}, a corresponding row exists in \texttt{person}. These are enforced as deferred FKs in \texttt{03\_indexes.sql} after the staging-table population step.
+    \item \texttt{person\_known\_for.tconst} references must resolve to titles within the slice. The closure is enforced at \ac{etl} time by INNER JOIN, before the FK is added.
+\end{itemize}
