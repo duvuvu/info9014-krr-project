@@ -47,11 +47,11 @@ info9014-krr-project/
 │   ├── run_pairwise_bacon.py          #   Iterated-ASK driver for Q4
 │   └── results/                       #   CSV / Markdown result exports
 │
-├── shacl/                       # M4 — Non-trivial demonstrator files
-│   ├── cineexplorer_episode_shape.ttl         # Shapes
-│   ├── ...
-│   ├── validation_report_episode_shape.ttl    # Validation reports
-│   └── ...       
+├── shacl/                       # M4 — Non-trivial demonstrator (SHACL)
+│   ├── cineexplorer_film_shape.ttl              # FilmShape
+│   ├── cineexplorer_episode_shape.ttl           # EpisodeShape
+│   ├── validation_report_film_shape.ttl         # FilmShape validation report
+│   └── validation_report_episode_shape.ttl      # EpisodeShape validation report
 │
 └── deployment/                        # Fuseki + Brwsr deployment
     └── docker-compose.yml             #   Fuseki on 3030, Brwsr on 5000
