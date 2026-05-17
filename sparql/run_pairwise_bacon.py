@@ -1,20 +1,7 @@
-#!/usr/bin/env python3
-"""Iterate Q4 across path-length bounds to compute pairwise Bacon distance.
-
-For each (source, target) pair, runs ASK queries at k = 1, 2, 3, ... and
-reports the smallest k that returns true. SPARQL 1.1 has no shortest-path
-operator; this is the standard iterated-reachability pattern.
-
-Outputs sparql/results/q4_pairwise_bacon.csv with one row per ASK run:
-source_name, source_nconst, target_name, target_nconst, k, answer, elapsed_s.
-"""
-from __future__ import annotations
-
 import csv
 import json
 import sys
 import time
-import urllib.parse
 import urllib.request
 
 ENDPOINT = "http://localhost:3030/cineexplorer/query"
